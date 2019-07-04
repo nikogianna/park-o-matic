@@ -61,4 +61,15 @@ try {
   $data = rtrim($data, ', ');
   $data = $data . '] }';
 
-  print_r($data);
+  // print_r($data);
+
+$resp = $data;
+
+$registration = $_POST['registration'];
+$name= $_POST['name'];
+$email= $_POST['email'];
+
+if ($registration == "success"){
+ // some action goes here under php
+ echo json_encode(array("abc"=>$resp));
+}
