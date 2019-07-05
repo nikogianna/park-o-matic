@@ -1,16 +1,25 @@
 <?php
 
-$user = 'root';
-$pass = 'root';
+require_once 'db_config.php';
+// $user = 'root';
+// $pass = 'root';
+//
+// try {
+//     $dbh = new PDO('mysql:host=127.0.0.1;port=8889;dbname=Park', $user, $pass);
+// } catch (PDOException $e) {
+//     echo "Error!: " . $e->getMessage() . "<br/>";
+//     die();
+// }
 
-try {
-    $dbh = new PDO('mysql:host=127.0.0.1;port=8889;dbname=Park', $user, $pass);
-} catch (PDOException $e) {
-    echo "Error!: " . $e->getMessage() . "<br/>";
-    die();
-}
+//Clean DB From Previous Data
+$sql = 'DELETE FROM coord;';
+$sql.= 'ALTER TABLE coord AUTO_INCREMENT=1';
+$stmt = $dbh->prepare($sql);
+$stmt->execute();
 
-$kml = simplexml_load_file('nm.kml');
+
+$kml = simplexml_load_file($path);
+// $kml = simplexml_load_file('nm.kml');
 
 $i = -1;
 foreach ($kml->Document->Folder as $pm) {
@@ -68,26 +77,23 @@ foreach ($kml->Document->Folder as $pm) {
 
 for ($i = 0; $i <= sizeof($id); $i++) {
     if ($polygonia2[$i] != '') {
-        $stmt = $dbh->prepare('INSERT INTO coord (name, gid, ESYE, population,polygonx,polygony)
-    VALUES (:name, :gid, :ESYE, :population, ST_GeomFromText(:polygonx),ST_GeomFromText(:polygony))');
+        $stmt = $dbh->prepare('INSERT INTO coord (name, gid, population,centroid, multipol)
+    VALUES (:name, :gid, :population,ST_Centroid(ST_GeomFromText(:multipolygon)),ST_GeomFromText(:multipolygon))');
 
         $stmt->execute(['name' => $name[$i],
         'gid' => $id[$i],
-        'ESYE' => $code[$i],
         'population' => $population[$i],
-        'polygonx' => 'POLYGON((' . $polygonia[$i] . '))',
-        'polygony' => 'POLYGON((' . $polygonia2[$i] . '))'
+        'multipolygon' => 'MULTIPOLYGON(((' . $polygonia[$i] . ')),' . '((' . $polygonia2[$i] . ')))'
     ]);
     } else {
-        $stmt = $dbh->prepare('INSERT INTO coord (name, gid, ESYE, population,polygonx)
-  VALUES (:name, :gid, :ESYE, :population, ST_GeomFromText(:polygonx))');
+        $stmt = $dbh->prepare('INSERT INTO coord (name, gid, population,polygonx,centroid)
+  VALUES (:name, :gid, :population, ST_GeomFromText(:polygonx), ST_Centroid(ST_GeomFromText(:polygonx)))');
 
         $stmt->execute(['name' => $name[$i],
       'gid' => $id[$i],
-      'ESYE' => $code[$i],
       'population' => $population[$i],
       'polygonx' => 'POLYGON((' . $polygonia[$i] . '))'
   ]);
     }
 }
-$dbh = null;
+// $dbh = null;

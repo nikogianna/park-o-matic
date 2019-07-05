@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta name="viewport" content="initial-scale=1.0">
+  <meta charset="utf-8">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+  <title>Park-o-Matic</title>
+</head>
+
+<body>
+  <form action="upload.php" method="post" enctype="multipart/form-data">
+    Select file to upload:
+    <input type="file" name="fileToUpload" id="fileToUpload">
+    <input type="submit" value="Upload File" name="submit">
+  </form>
+
+  <button type="button">Delete Table</button>
+</body>
+
+
+<script type="text/javascript">
+  $("button").click(function(e) {
+    if (confirm('Are you sure you want to delete this?')) {
+      e.preventDefault();
+      $.ajax({
+        type: "GET",
+        url: "/del_table.php",
+
+        success: function(result) {
+          // $("#response").html(result.abc);
+          alert("deleted");
+        },
+        error: function(result) {
+          alert('error');
+        }
+      });
+    }
+  });
+</script>
+
+</html>

@@ -79,7 +79,7 @@ foreach ($kml->Document->Folder as $pm) {
 //     // foreach($w as $r){
 //
 //     foreach($w as $key => $value){
-// 
+//
 // // echo $key . ' ' . $value . '<br/>';
 // }
 // }
@@ -99,8 +99,9 @@ for ($i = 0; $i <= sizeof($id); $i++) {
 
     // echo $polygonia[0] . '<br/>';
 
-    $stmt = $dbh->prepare('INSERT INTO coord (name, gid, ESYE, population, pointx, polygonx)
-    VALUES (:name, :gid, :ESYE, :population, ST_GeomFromText(:pointx), ST_GeomFromText(:polygonx))');
+    $stmt = $dbh->prepare('INSERT INTO coord (name, gid, ESYE, population, polygonx, centroidx, multipol)
+    VALUES (:name, :gid, :ESYE, :population, ST_GeomFromText(:polygonx),ST_Centroid(ST_GeomFromText(:polygonx)),
+    ST_GeomFromText(:multipolygon))');
 
     // $dbh = "INSERT INTO coord(name) VALUES (:name)";
     // $stmt= $pdo->prepare($dbh);
@@ -109,7 +110,8 @@ for ($i = 0; $i <= sizeof($id); $i++) {
         'ESYE' => $code[$i],
         'population' => $population[$i],
         'pointx' => 'POINT('. $point[$i][1] . ' ' . $point[$i][0] . ')',
-        'polygonx' => 'POLYGON((' . $polygonia[$i] . '))'
+        'polygonx' => 'POLYGON((' . $polygonia[$i] . '))',
+        'multipolygon' => 'MULTIPOLYGON(((' . $polygonia[$i] . ')),' . '((' . $polygonia[$i] . ')))'
     ]);
 
 

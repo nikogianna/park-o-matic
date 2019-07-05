@@ -1,18 +1,20 @@
 <?php
 
-$user = 'root';
-$pass = 'root';
-// $name = 'assasas';
+require_once 'db_config.php';
 
-try {
-    $dbh = new PDO('mysql:host=127.0.0.1;port=8889;dbname=Park', $user, $pass);
+// $user = 'root';
+// $pass = 'root';
+// // $name = 'assasas';
+//
+// try {
+//     $dbh = new PDO('mysql:host=127.0.0.1;port=8889;dbname=Park', $user, $pass);
 
-    foreach ($dbh->query("SELECT AsText(polygonx) from coord ") as $row) {
+    foreach ($dbh->query("SELECT AsText(polygonx) from coord WHERE polygonx IS NOT NULL ") as $row) {
         // print_r($row);
         $ini[] = $row[0];
     }
 
-    foreach ($dbh->query("SELECT AsText(polygony) from coord WHERE polygony IS NOT NULL") as $row3) {
+    foreach ($dbh->query("SELECT AsText(multipol) from coord WHERE multipol IS NOT NULL") as $row3) {
         $ini2[] = $row3[0];
     }
 
@@ -41,12 +43,12 @@ try {
           }}' ;
         }
     }
-} catch (PDOException $e) {
-    echo "Error!: " . $e->getMessage() . "<br/>";
-    die();
-}
+// } catch (PDOException $e) {
+//     echo "Error!: " . $e->getMessage() . "<br/>";
+//     die();
+// }
 
-  $dbh = null;
+  // $dbh = null;
 
   $data = '{
     "type": "FeatureCollection",

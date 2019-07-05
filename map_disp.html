@@ -11,6 +11,8 @@
   <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
   <script type="text/javascript" src="https://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script>
 
+  <script type="text/javascript" src='map.js'></script>
+
   <title>Simple Map</title>
   <style>
     /* Always set the map height explicitly to define the size of the div
@@ -41,7 +43,15 @@
     maxZoom: 20,
     ext: 'png'
   });
-  var mymap = L.map('mapid').setView([40.627034, 22.954172], 12);
+  var openmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map tiles by <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    minZoom: 0,
+    maxZoom: 20
+  });
+  // var mymap = L.map('mapid').setView([40.627034, 22.954172], 12);
+  var mymap = L.map('mapid');
+  mymap.fitWorld();
+
   // L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoibmlrb25pa29naWFubmEiLCJhIjoiY2p4bmU0OW5tMDFsbTNia2Z4OG5iaHlvcyJ9.QBLBmiu_qJ_9nMDnOQJBtA', {
   //   attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
   //   maxZoom: 18,
@@ -49,17 +59,9 @@
   //   accessToken: 'your.mapbox.access.token'
   // }).addTo(mymap);
   // var layer = new L.StamenTileLayer("toner");
+  mymap.addLayer(openmap);
 
-  mymap.addLayer(Stamen_Toner);
-  var myStyle = {
-    "color": "#ff7800",
-    "weight": 4,
-    "opacity": 0.35
-  };
-
-  L.geoJSON(geojsonFeature, {
-    style: myStyle
-  }).addTo(mymap);
+  // mymap.addLayer(Stamen_Toner);
   // L.geoJSON(geojsonFeature).addTo(mymap);
 </script>
 
@@ -67,8 +69,9 @@
 <script type="text/javascript">
   // var geojsonFeature =
   //   L.geoJSON(geojsonFeature).addTo(mymap);
-  $("button").click(function(e) {
-    e.preventDefault();
+  // $("button").click(function(e) {
+  //   e.preventDefault();
+  $(document).ready(function() {
     $.ajax({
       type: "POST",
       url: "/resp.php",
@@ -81,9 +84,17 @@
       success: function(result) {
         // $("#response").html(result.abc);
         var geojsonFeature = jQuery.parseJSON(result.abc);
-        L.geoJSON(geojsonFeature, {
-          style: myStyle
+        // var layer = L.geoJSON(geojsonFeature, {
+        //   style: myStyle
+        // });
+        // layer.addTo(mymap);
+        // mymap.fitBounds(layer.getBounds());
+        geojson = L.geoJson(geojsonFeature, {
+          style: myStyle,
+          onEachFeature: onEachFeature
         }).addTo(mymap);
+        mymap.fitBounds(geojson.getBounds());
+
       },
       error: function(result) {
         alert('error');

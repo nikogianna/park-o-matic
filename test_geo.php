@@ -7,12 +7,12 @@ $pass = 'root';
 try {
     $dbh = new PDO('mysql:host=127.0.0.1;port=8889;dbname=Park', $user, $pass);
 
-    foreach ($dbh->query("SELECT AsText(polygonx) from coord ") as $row) {
+    foreach ($dbh->query("SELECT AsText(polygonx) from coord WHERE polygonx IS NOT NULL ") as $row) {
         // print_r($row);
         $ini[] = $row[0];
     }
 
-    foreach ($dbh->query("SELECT AsText(polygony) from coord WHERE polygony IS NOT NULL") as $row3) {
+    foreach ($dbh->query("SELECT AsText(multipol) from coord WHERE multipol IS NOT NULL") as $row3) {
         $ini2[] = $row3[0];
     }
 
