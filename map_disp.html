@@ -9,10 +9,11 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
   <!-- Make sure you put this AFTER Leaflet's CSS -->
   <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
-  <script type="text/javascript" src="https://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script>
+  <!-- <script type="text/javascript" src="https://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script> -->
+  <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+
 
   <script type="text/javascript" src='map.js'></script>
-
   <title>Simple Map</title>
   <style>
     /* Always set the map height explicitly to define the size of the div
@@ -28,7 +29,10 @@
 
 <body>
   <div id="mapid"></div>
-  <button type="button">Click Me</button>
+  <button id="circles" type="button">Show Zones</button>
+  <button id="zones" type="button">Load Default Zones And Spots</button>
+  <!-- <button id="spots" type="button">Load Default Number of Parking Spots</button> -->
+
   <div id="response">
 
   </div>
@@ -36,13 +40,19 @@
 
 <script type="text/javascript">
   var geojsonFeature;
-  var Stamen_Toner = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
-    attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    subdomains: 'abcd',
-    minZoom: 0,
-    maxZoom: 20,
-    ext: 'png'
-  });
+  var geojson;
+  var centroid;
+  var res;
+  var inner_radius = 1500;
+  var outer_radius = 3000;
+
+  // var Stamen_Toner = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
+  //   attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  //   subdomains: 'abcd',
+  //   minZoom: 0,
+  //   maxZoom: 20,
+  //   ext: 'png'
+  // });
   var openmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: 'Map tiles by <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     minZoom: 0,
@@ -82,18 +92,17 @@
         email: "abc@gmail.com"
       },
       success: function(result) {
-        // $("#response").html(result.abc);
-        var geojsonFeature = jQuery.parseJSON(result.abc);
-        // var layer = L.geoJSON(geojsonFeature, {
-        //   style: myStyle
-        // });
-        // layer.addTo(mymap);
-        // mymap.fitBounds(layer.getBounds());
+
+        geojsonFeature = jQuery.parseJSON(result.abc);
         geojson = L.geoJson(geojsonFeature, {
           style: myStyle,
-          onEachFeature: onEachFeature
+          onEachFeature: onEachFeature2
         }).addTo(mymap);
+
         mymap.fitBounds(geojson.getBounds());
+
+        centroid = turf.centroid(geojsonFeature);
+        res = String(centroid.geometry.coordinates).split(",");
 
       },
       error: function(result) {
@@ -101,6 +110,118 @@
       }
     });
   });
+</script>
+
+<script type="text/javascript">
+  $("#circles").click(function(e) {
+    e.preventDefault();
+
+    if (geojson !== null) {
+
+      L.geoJSON(centroid).addTo(mymap);
+
+      L.circle([res[1], res[0]], {
+        radius: outer_radius,
+        'fillColor': "#d5dce6",
+        'fillOpacity': 0.35,
+        "color": "black",
+        "weight": 4,
+        "opacity": 0.55
+      }).addTo(mymap);
+
+      L.circle([res[1], res[0]], {
+        radius: inner_radius,
+        'fillColor': "#8296b5",
+        'fillOpacity': 0.75,
+        "color": "black",
+        "weight": 4,
+        "opacity": 0.55
+      }).addTo(mymap);
+    }
+
+    // var testvar = geojson.getLayers();
+    // for (var incid of testvar) { /* do stuff */
+    //   alert(incid.feature.properties.id.
+    //     '  '.incid.feature.geometry);
+    // }
+
+    // alert(geojsonFeature.features[0].properties.centroid);
+
+    var marker = L.marker([40.62219146058562, 22.97614545367671]).addTo(mymap);
+
+
+
+
+  });
+
+
+  $("#zones").click(function(e) {
+    e.preventDefault();
+
+    var zones = [];
+    var spots = [];
+
+    if (geojsonFeature !== null) {
+
+      for (var i = 0; i < geojsonFeature.features.length; i++) {
+        var population = geojsonFeature.features[i].properties.population;
+        var centre = geojsonFeature.features[i].properties.centroid;
+        var latlng_point = L.latLng(res[1], res[0]);
+        var latlng_centroid = L.latLng(centre.coordinates[1], centre.coordinates[0]);
+        // alert(centre.distanceTo(centroid));
+        // L.geoJSON(centre).addTo(mymap);
+        // alert(centre);
+        // alert(latlng_point.distanceTo(latlng_centroid));
+        var dist = latlng_point.distanceTo(latlng_centroid);
+        if (dist <= 1500) {
+          zones[i] = 0;
+        } else if (dist > 1500 && dist <= 3000) {
+          zones[i] = 1;
+        } else {
+          zones[i] = 2;
+        }
+
+        spots[i] = Math.ceil((zones[i] + 1) * population / 3);
+
+      }
+    }
+
+    var jsonZones = JSON.stringify(zones);
+    var jsonSpots = JSON.stringify(spots);
+    // alert(jsonString);
+    $.ajax({
+      type: "POST",
+      url: "/resp2.php",
+      data: {
+        registration: "success",
+        zones: jsonZones,
+        spots: jsonSpots
+      },
+      success: function(result) {
+
+        // alert("Zones are now loaded on the DB");
+        alert(result);
+
+      },
+      error: function(result) {
+        alert('error');
+      }
+    });
+  });
+
+  // $("#spots").click(function(e) {
+  //   e.preventDefault();
+  //
+  //   // var zones = [];
+  //
+  //   if (geojsonFeature !== null) {
+  //     if (geojsonFeature.features[0].properties.zone !== null) {
+  //       alert("asdsad");
+  //     }
+  //
+  //
+  //   }
+  // });
 </script>
 
 </html>

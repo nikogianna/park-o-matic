@@ -2,66 +2,69 @@
 
 require_once 'db_config.php';
 
-// $user = 'root';
-// $pass = 'root';
-// // $name = 'assasas';
-//
-// try {
-//     $dbh = new PDO('mysql:host=127.0.0.1;port=8889;dbname=Park', $user, $pass);
+foreach ($dbh->query("SELECT AsText(polygonx), id, AsText(centroid), population from coord WHERE polygonx IS NOT NULL ") as $row) {
+    // print_r($row);
+    $ini[] = $row[0];
+    $idi[] = $row[1];
+    $cen[] = $row[2];
+    $zone[] = $row[3];
+}
 
-    foreach ($dbh->query("SELECT AsText(polygonx) from coord WHERE polygonx IS NOT NULL ") as $row) {
-        // print_r($row);
-        $ini[] = $row[0];
+foreach ($dbh->query("SELECT AsText(multipol), id, AsText(centroid), population from coord WHERE multipol IS NOT NULL") as $row3) {
+    $ini2[] = $row3[0];
+    $idi2[] = $row3[1];
+    $cen2[] = $row3[2];
+    $zone2[] = $row3[3];
+}
+
+$stmt = $dbh->prepare("SELECT ST_AsGeoJSON(ST_GeomFromText(:ini)), ST_AsGeoJSON(ST_GeomFromText(:centr));");
+
+$i = -1;
+foreach ($ini as $inp) {
+    $i++;
+    $stmt->execute(['ini' => $inp,
+  'centr' => $cen[$i]
+]);
+
+// if ($zone[$i] == null) { $zone[$i] = 'null';}
+    while ($row2 = $stmt->fetch()) {
+        $out[] = '{
+      "type": "Feature",
+      "geometry": ' . $row2[0] . ', "properties": { "id": ' . $idi[$i] . ', ' . '"centroid": ' . ' ' . $row2[1] . ', '
+       . '"population": ' . ' ' . $zone[$i] . ' '
+       . '}}' ;
     }
+}
 
-    foreach ($dbh->query("SELECT AsText(multipol) from coord WHERE multipol IS NOT NULL") as $row3) {
-        $ini2[] = $row3[0];
+$i = -1;
+foreach ($ini2 as $inp2) {
+    $i++;
+    $stmt->execute(['ini' => $inp2,
+  'centr' => $cen2[$i]
+]);
+// if ($zone2[$i] == null) { $zone2[$i] = 'null';}
+
+    while ($row3 = $stmt->fetch()) {
+        $out2[] = '{
+      "type": "Feature",
+      "geometry": ' . $row3[0] . ', "properties": { "id": ' . $idi2[$i] . ', ' . '"centroid": ' . ' ' . $row3[1] . ', '
+        . '"population": ' . ' ' . $zone2[$i] . ' '
+      . '}}' ;
     }
+}
 
-    $stmt = $dbh->prepare("SELECT ST_AsGeoJSON(ST_GeomFromText(:ini));");
+$data = '{
+"type": "FeatureCollection",
+"features": [';
 
-    foreach ($ini as $inp) {
-        $stmt->execute(['ini' => $inp]);
-
-        while ($row2 = $stmt->fetch()) {
-
-            $out[] = '{
-          "type": "Feature",
-          "geometry": ' . $row2[0] . ', "properties": {
-          }}' ;
-        }
-    }
-
-    foreach ($ini2 as $inp2) {
-        $stmt->execute(['ini' => $inp2]);
-
-        while ($row3 = $stmt->fetch()) {
-
-            $out2[] = '{
-          "type": "Feature",
-          "geometry": ' . $row3[0] . ', "properties": {
-          }}' ;
-        }
-    }
-// } catch (PDOException $e) {
-//     echo "Error!: " . $e->getMessage() . "<br/>";
-//     die();
-// }
-
-  // $dbh = null;
-
-  $data = '{
-    "type": "FeatureCollection",
-    "features": [';
-
-  foreach ($out as $feature) {
-      $data = $data . $feature . ',';
-  }
-  foreach ($out2 as $feature) {
-      $data = $data . $feature . ',';
-  }
-  $data = rtrim($data, ', ');
-  $data = $data . '] }';
+foreach ($out as $feature) {
+    $data = $data . $feature . ',';
+}
+foreach ($out2 as $feature) {
+    $data = $data . $feature . ',';
+}
+$data = rtrim($data, ', ');
+$data = $data . '] }';
 
   // print_r($data);
 
@@ -71,7 +74,7 @@ $registration = $_POST['registration'];
 $name= $_POST['name'];
 $email= $_POST['email'];
 
-if ($registration == "success"){
- // some action goes here under php
- echo json_encode(array("abc"=>$resp));
+if ($registration == "success") {
+    // some action goes here under php
+    echo json_encode(array("abc"=>$resp));
 }

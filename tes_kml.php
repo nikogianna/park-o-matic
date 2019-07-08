@@ -75,7 +75,19 @@ foreach ($kml->Document->Folder as $pm) {
     }
 }
 
+//In case population is given to be NULL, we assign the average population of the non-NULL polygons
+$a = array_filter($population);
+$average_population = array_sum($a)/count($a);
+////
+
 for ($i = 0; $i <= sizeof($id); $i++) {
+
+    //See previous note
+    if ($population[$i] == null) {
+        $population[$i] = $average_population;
+    }
+    ////
+
     if ($polygonia2[$i] != '') {
         $stmt = $dbh->prepare('INSERT INTO coord (name, gid, population,centroid, multipol)
     VALUES (:name, :gid, :population,ST_Centroid(ST_GeomFromText(:multipolygon)),ST_GeomFromText(:multipolygon))');
