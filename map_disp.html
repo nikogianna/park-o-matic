@@ -14,17 +14,9 @@
 
 
   <script type="text/javascript" src='map.js'></script>
+  <link rel="stylesheet" type="text/css" href="mystyle.css">
+
   <title>Simple Map</title>
-  <style>
-    /* Always set the map height explicitly to define the size of the div
-       * element that contains the map. */
-
-    /* Optional: Makes the sample page fill the window. */
-
-    #mapid {
-      height: 500px;
-    }
-  </style>
 </head>
 
 <body>
@@ -45,6 +37,7 @@
   var res;
   var inner_radius = 1500;
   var outer_radius = 3000;
+  var info;
 
   // var Stamen_Toner = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
   //   attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -55,8 +48,7 @@
   // });
   var openmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: 'Map tiles by <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    minZoom: 0,
-    maxZoom: 20
+    minZoom: 0
   });
   // var mymap = L.map('mapid').setView([40.627034, 22.954172], 12);
   var mymap = L.map('mapid');
@@ -109,6 +101,27 @@
         alert('error');
       }
     });
+
+    info = L.control({
+      position: 'bottomleft'
+    });
+
+    info.onAdd = function(mymap) {
+      this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+      this.update();
+      return this._div;
+    };
+
+    // method that we will use to update the control based on feature properties passed
+    info.update = function(polyg) {
+      this._div.innerHTML = '<h4>Population And ID</h4>' + (polyg ?
+        '<b>ID: ' + polyg.id + '</b><br />' + polyg.population + ' people' :
+        'Hover over a polygon');
+    };
+
+    info.addTo(mymap);
+
+
   });
 </script>
 
@@ -147,7 +160,7 @@
 
     // alert(geojsonFeature.features[0].properties.centroid);
 
-    var marker = L.marker([40.62219146058562, 22.97614545367671]).addTo(mymap);
+    var marker = L.marker([40.58798254168363, 22.97053825267842]).addTo(mymap);
 
 
 
@@ -160,12 +173,15 @@
 
     var zones = [];
     var spots = [];
+    var ids = [];
 
     if (geojsonFeature !== null) {
 
       for (var i = 0; i < geojsonFeature.features.length; i++) {
-        var population = geojsonFeature.features[i].properties.population;
-        var centre = geojsonFeature.features[i].properties.centroid;
+        var properties = geojsonFeature.features[i].properties;
+        ids[i] = properties.id
+        var population = properties.population;
+        var centre = properties.centroid;
         var latlng_point = L.latLng(res[1], res[0]);
         var latlng_centroid = L.latLng(centre.coordinates[1], centre.coordinates[0]);
         // alert(centre.distanceTo(centroid));
@@ -181,13 +197,13 @@
           zones[i] = 2;
         }
 
-        spots[i] = Math.ceil((zones[i] + 1) * population / 3);
-
+        spots[i] = Math.ceil((zones[i] + 1) * (population / 3));
       }
     }
 
     var jsonZones = JSON.stringify(zones);
     var jsonSpots = JSON.stringify(spots);
+    var jsonIDs = JSON.stringify(ids);
     // alert(jsonString);
     $.ajax({
       type: "POST",
@@ -195,7 +211,8 @@
       data: {
         registration: "success",
         zones: jsonZones,
-        spots: jsonSpots
+        spots: jsonSpots,
+        ids: jsonIDs
       },
       success: function(result) {
 
@@ -208,20 +225,6 @@
       }
     });
   });
-
-  // $("#spots").click(function(e) {
-  //   e.preventDefault();
-  //
-  //   // var zones = [];
-  //
-  //   if (geojsonFeature !== null) {
-  //     if (geojsonFeature.features[0].properties.zone !== null) {
-  //       alert("asdsad");
-  //     }
-  //
-  //
-  //   }
-  // });
 </script>
 
 </html>

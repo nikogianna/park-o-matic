@@ -7,14 +7,14 @@ foreach ($dbh->query("SELECT AsText(polygonx), id, AsText(centroid), population 
     $ini[] = $row[0];
     $idi[] = $row[1];
     $cen[] = $row[2];
-    $zone[] = $row[3];
+    $pop[] = $row[3];
 }
 
 foreach ($dbh->query("SELECT AsText(multipol), id, AsText(centroid), population from coord WHERE multipol IS NOT NULL") as $row3) {
     $ini2[] = $row3[0];
     $idi2[] = $row3[1];
     $cen2[] = $row3[2];
-    $zone2[] = $row3[3];
+    $pop2[] = $row3[3];
 }
 
 $stmt = $dbh->prepare("SELECT ST_AsGeoJSON(ST_GeomFromText(:ini)), ST_AsGeoJSON(ST_GeomFromText(:centr));");
@@ -23,7 +23,7 @@ $i = -1;
 foreach ($ini as $inp) {
     $i++;
     $stmt->execute(['ini' => $inp,
-  'centr' => $cen[$i]
+      'centr' => $cen[$i]
 ]);
 
 // if ($zone[$i] == null) { $zone[$i] = 'null';}
@@ -31,7 +31,7 @@ foreach ($ini as $inp) {
         $out[] = '{
       "type": "Feature",
       "geometry": ' . $row2[0] . ', "properties": { "id": ' . $idi[$i] . ', ' . '"centroid": ' . ' ' . $row2[1] . ', '
-       . '"population": ' . ' ' . $zone[$i] . ' '
+       . '"population": ' . ' ' . $pop[$i] . ' '
        . '}}' ;
     }
 }
@@ -44,11 +44,11 @@ foreach ($ini2 as $inp2) {
 ]);
 // if ($zone2[$i] == null) { $zone2[$i] = 'null';}
 
-    while ($row3 = $stmt->fetch()) {
+    while ($row4 = $stmt->fetch()) {
         $out2[] = '{
       "type": "Feature",
-      "geometry": ' . $row3[0] . ', "properties": { "id": ' . $idi2[$i] . ', ' . '"centroid": ' . ' ' . $row3[1] . ', '
-        . '"population": ' . ' ' . $zone2[$i] . ' '
+      "geometry": ' . $row4[0] . ', "properties": { "id": ' . $idi2[$i] . ', ' . '"centroid": ' . ' ' . $row4[1] . ', '
+        . '"population": ' . ' ' . $pop2[$i] . ' '
       . '}}' ;
     }
 }
