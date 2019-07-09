@@ -13,3 +13,14 @@ border-radius: 5px;
 margin: 0 0 5px;
 color: #777;
 }
+
+label {
+/* display:block; */
+/* background-color: #74992e; */
+/* position:relative;
+padding-left:120px; /* adjust if necessary */ */
+}
+/* label > span {
+position:absolute;
+left:0;
+} */

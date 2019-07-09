@@ -64,15 +64,89 @@ function onEachFeature2(feature, layer) {
   });
 }
 
-var template = '<p>Hello world!<br />This is a nice popup.</p>';
+// var template = '<p>Hello world!<br />This is a nice popup.</p>';
+var template = '<form>\
+<div class="form-group">\
+<label for="input-spots">Num of spots:</label>\
+  <input class="form-control"  id="input-spots" class="popup-input" type="number" min="0"/>\
+  </div>\
+  <br><br>\
+  <div class="form-group">\
+<label for="zones-select">Choose a zone:</label>\
+  <select class="form-control" id="zones-select" name="zones-select">\
+    <option value="default">Default</option>\
+    <option value="center">Center</option>\
+    <option value="home">Home</option>\
+    <option value="steady">Steady</option>\
+  </select>\
+  </div>\
+  <br><br>\
+  <button class="form-group" id="button-submit" type="button">Save Changes</button>\
+</form>';
 
 function aler(e) {
+
   mymap.fitBounds(e.target.getBounds());
 
+  var choice = null;
+  var spots = null;
+  var buttonSubmit = null;
+  var marker = null;
+  var properties = null;
+  var inputSpots = null;
+  var id = null;
+  var zone;
   // alert('asdsdad');
-  var marker = e.target,
+  marker = e.target,
     properties = e.target.feature.properties;
-    marker.bindPopup(template);
-    marker.openPopup();
-  // alert(properties.id);
+
+    if (marker.hasOwnProperty('_popup')) {
+      marker.unbindPopup();
+    }
+
+  marker.bindPopup(template);
+  marker.openPopup();
+
+  // var spots;
+  id = properties.id;
+  inputSpots = L.DomUtil.get('input-spots');
+  spots = inputSpots.value;
+  L.DomEvent.addListener(inputSpots, 'change', function(e) {
+    spots = e.target.value;
+  });
+
+
+  zone = L.DomUtil.get('zones-select');
+  choice = zone.value;
+  // choice.value = properties.speed;
+  L.DomEvent.addListener(zone, 'change', function(e) {
+    choice = e.target.value;
+  });
+
+  buttonSubmit = L.DomUtil.get('button-submit');
+  L.DomEvent.addListener(buttonSubmit, 'click', function(e) {
+    marker.closePopup();
+    // alert(choice);
+    // alert(spots);
+
+    $.ajax({
+      type: "POST",
+      url: "/test.php",
+      data: {
+        id: id,
+        choice: choice,
+        spots: spots
+      },
+      success: function(result) {
+
+        // alert("Zones are now loaded on the DB");
+        alert(result);
+
+      },
+      error: function(result) {
+        alert('error');
+      }
+    });
+
+  });
 }
