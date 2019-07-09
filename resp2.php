@@ -23,5 +23,5 @@ foreach ($zones as $zone) {
 if ($registration == "success") {
     // some action goes here under php
     // echo json_encode(array("abc"=>$resp));
-    echo "Zones updated with default settings";
+    echo "Zones and spots updated with default settings";
 }

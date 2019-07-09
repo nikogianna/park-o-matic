@@ -38,6 +38,10 @@
   var inner_radius = 1500;
   var outer_radius = 3000;
   var info;
+  var circle1;
+  var circle2;
+  var centroid1;
+
 
   // var Stamen_Toner = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
   //   attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -130,26 +134,37 @@
     e.preventDefault();
 
     if (geojson !== null) {
+      if (!mymap.hasLayer(circle1)) {
+        centroid1 = L.geoJSON(centroid).addTo(mymap);
 
-      L.geoJSON(centroid).addTo(mymap);
+        circle1 = L.circle([res[1], res[0]], {
+          radius: outer_radius,
+          'fillColor': "#d5dce6",
+          'fillOpacity': 0.35,
+          "color": "black",
+          "weight": 4,
+          "opacity": 0.55
+        }).addTo(mymap);
 
-      L.circle([res[1], res[0]], {
-        radius: outer_radius,
-        'fillColor': "#d5dce6",
-        'fillOpacity': 0.35,
-        "color": "black",
-        "weight": 4,
-        "opacity": 0.55
-      }).addTo(mymap);
+        circle2 = L.circle([res[1], res[0]], {
+          radius: inner_radius,
+          'fillColor': "#8296b5",
+          'fillOpacity': 0.75,
+          "color": "black",
+          "weight": 4,
+          "opacity": 0.55
+        }).addTo(mymap);
 
-      L.circle([res[1], res[0]], {
-        radius: inner_radius,
-        'fillColor': "#8296b5",
-        'fillOpacity': 0.75,
-        "color": "black",
-        "weight": 4,
-        "opacity": 0.55
-      }).addTo(mymap);
+        $("#circles").html('Hide Zones');
+        // var marker = L.marker([40.64316461309677, 22.93441007414772]).addTo(mymap);
+
+      } else {
+        mymap.removeLayer(circle1);
+        mymap.removeLayer(circle2);
+        mymap.removeLayer(centroid1);
+        $("#circles").html('Show Zones');
+
+      }
     }
 
     // var testvar = geojson.getLayers();
@@ -160,8 +175,7 @@
 
     // alert(geojsonFeature.features[0].properties.centroid);
 
-    var marker = L.marker([40.58798254168363, 22.97053825267842]).addTo(mymap);
-
+    // var marker = L.marker([40.58798254168363, 22.97053825267842]).addTo(mymap);
 
 
 
@@ -190,14 +204,17 @@
         // alert(latlng_point.distanceTo(latlng_centroid));
         var dist = latlng_point.distanceTo(latlng_centroid);
         if (dist <= 1500) {
-          zones[i] = 0;
+          zones[i] = 'kentro';
+          var coef = 1;
         } else if (dist > 1500 && dist <= 3000) {
-          zones[i] = 1;
+          zones[i] = 'home';
+          var coef = 2;
         } else {
-          zones[i] = 2;
+          zones[i] = 'steady';
+          var coef = 3;
         }
 
-        spots[i] = Math.ceil((zones[i] + 1) * (population / 3));
+        spots[i] = Math.ceil(coef * (population / 3));
       }
     }
 

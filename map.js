@@ -75,7 +75,7 @@ var template = '<form>\
 <label for="zones-select">Choose a zone:</label>\
   <select class="form-control" id="zones-select" name="zones-select">\
     <option value="default">Default</option>\
-    <option value="center">Center</option>\
+    <option value="kentro">Center</option>\
     <option value="home">Home</option>\
     <option value="steady">Steady</option>\
   </select>\
