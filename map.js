@@ -63,17 +63,22 @@ function onEachFeature2(feature, layer) {
     click: aler
   });
 }
+function onEachFeature3(feature, layer) {
+  layer.on({
+    // mouseover: highlightFeature2,
+    // mouseout: resetHighlight2,
+    click: aler
+  });
+}
 
-// var template = '<p>Hello world!<br />This is a nice popup.</p>';
 var template = '<form>\
 <div class="form-group">\
 <label for="input-spots">Num of spots:</label>\
-  <input class="form-control"  id="input-spots" class="popup-input" type="number" min="0"/>\
+  <input class=""  id="input-spots" class="popup-input" type="number" min="0"/>\
   </div>\
-  <br><br>\
-  <div class="form-group">\
+  <div class="">\
 <label for="zones-select">Choose a zone:</label>\
-  <select class="form-control" id="zones-select" name="zones-select">\
+  <select class="form-control form-control-sm" id="zones-select" name="zones-select">\
     <option value="default">Default</option>\
     <option value="kentro">Center</option>\
     <option value="home">Home</option>\
@@ -81,7 +86,7 @@ var template = '<form>\
   </select>\
   </div>\
   <br><br>\
-  <button class="form-group" id="button-submit" type="button">Save Changes</button>\
+  <button class="btn btn-dark btn-block" id="button-submit" type="button">Save Changes</button>\
 </form>';
 
 function aler(e) {
@@ -96,18 +101,16 @@ function aler(e) {
   var inputSpots = null;
   var id = null;
   var zone;
-  // alert('asdsdad');
   marker = e.target,
     properties = e.target.feature.properties;
 
-    if (marker.hasOwnProperty('_popup')) {
-      marker.unbindPopup();
-    }
+  if (marker.hasOwnProperty('_popup')) {
+    marker.unbindPopup();
+  }
 
   marker.bindPopup(template);
   marker.openPopup();
 
-  // var spots;
   id = properties.id;
   inputSpots = L.DomUtil.get('input-spots');
   spots = inputSpots.value;
@@ -115,10 +118,8 @@ function aler(e) {
     spots = e.target.value;
   });
 
-
   zone = L.DomUtil.get('zones-select');
   choice = zone.value;
-  // choice.value = properties.speed;
   L.DomEvent.addListener(zone, 'change', function(e) {
     choice = e.target.value;
   });
@@ -126,16 +127,114 @@ function aler(e) {
   buttonSubmit = L.DomUtil.get('button-submit');
   L.DomEvent.addListener(buttonSubmit, 'click', function(e) {
     marker.closePopup();
-    // alert(choice);
-    // alert(spots);
+
 
     $.ajax({
       type: "POST",
-      url: "/test.php",
+      url: "/edit_pol.php",
       data: {
         id: id,
         choice: choice,
         spots: spots
+      },
+      success: function(result) {
+
+        alert(result);
+
+      },
+      error: function(result) {
+        alert('error');
+      }
+    });
+
+  });
+}
+
+
+$("#circles").click(function(e) {
+  e.preventDefault();
+
+  if (geojson !== null) {
+    if (!mymap.hasLayer(circle1)) {
+      centroid1 = L.geoJSON(centroid).addTo(mymap);
+
+      circle1 = L.circle([res[1], res[0]], {
+        radius: outer_radius,
+        'fillColor': "#d5dce6",
+        'fillOpacity': 0.35,
+        "color": "black",
+        "weight": 4,
+        "opacity": 0.55
+      }).addTo(mymap);
+
+      circle2 = L.circle([res[1], res[0]], {
+        radius: inner_radius,
+        'fillColor': "#8296b5",
+        'fillOpacity': 0.75,
+        "color": "black",
+        "weight": 4,
+        "opacity": 0.55
+      }).addTo(mymap);
+
+      $("#circles").html('Hide Zones');
+      // var marker = L.marker([40.64316461309677, 22.93441007414772]).addTo(mymap);
+
+    } else {
+      mymap.removeLayer(circle1);
+      mymap.removeLayer(circle2);
+      mymap.removeLayer(centroid1);
+      $("#circles").html('Show Zones');
+
+    }
+  }
+});
+  // var marker = L.marker([40.58798254168363, 22.97053825267842]).addTo(mymap);
+
+  $("#zones").click(function(e) {
+    e.preventDefault();
+
+    var zones = [];
+    var spots = [];
+    var ids = [];
+
+    if (geojsonFeature !== null) {
+
+      for (var i = 0; i < geojsonFeature.features.length; i++) {
+        var properties = geojsonFeature.features[i].properties;
+        ids[i] = properties.id
+        var population = properties.population;
+        var centre = properties.centroid;
+        var latlng_point = L.latLng(res[1], res[0]);
+        var latlng_centroid = L.latLng(centre.coordinates[1], centre.coordinates[0]);
+
+        var dist = latlng_point.distanceTo(latlng_centroid);
+        if (dist <= 1500) {
+          zones[i] = 'kentro';
+          var coef = 1;
+        } else if (dist > 1500 && dist <= 3000) {
+          zones[i] = 'home';
+          var coef = 2;
+        } else {
+          zones[i] = 'steady';
+          var coef = 3;
+        }
+
+        spots[i] = Math.ceil(coef * (population / 3));
+      }
+    }
+
+    var jsonZones = JSON.stringify(zones);
+    var jsonSpots = JSON.stringify(spots);
+    var jsonIDs = JSON.stringify(ids);
+    // alert(jsonString);
+    $.ajax({
+      type: "POST",
+      url: "/resp2.php",
+      data: {
+        registration: "success",
+        zones: jsonZones,
+        spots: jsonSpots,
+        ids: jsonIDs
       },
       success: function(result) {
 
@@ -147,6 +246,4 @@ function aler(e) {
         alert('error');
       }
     });
-
   });
-}

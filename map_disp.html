@@ -12,8 +12,6 @@
   <!-- <script type="text/javascript" src="https://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script> -->
   <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
 
-
-  <script type="text/javascript" src='map.js'></script>
   <link rel="stylesheet" type="text/css" href="mystyle.css">
 
   <title>Simple Map</title>
@@ -66,17 +64,11 @@
   // }).addTo(mymap);
   // var layer = new L.StamenTileLayer("toner");
   mymap.addLayer(openmap);
-
   // mymap.addLayer(Stamen_Toner);
   // L.geoJSON(geojsonFeature).addTo(mymap);
 </script>
 
-
 <script type="text/javascript">
-  // var geojsonFeature =
-  //   L.geoJSON(geojsonFeature).addTo(mymap);
-  // $("button").click(function(e) {
-  //   e.preventDefault();
   $(document).ready(function() {
     $.ajax({
       type: "POST",
@@ -129,119 +121,7 @@
   });
 </script>
 
-<script type="text/javascript">
-  $("#circles").click(function(e) {
-    e.preventDefault();
+<script type="text/javascript" src='map.js'></script>
 
-    if (geojson !== null) {
-      if (!mymap.hasLayer(circle1)) {
-        centroid1 = L.geoJSON(centroid).addTo(mymap);
-
-        circle1 = L.circle([res[1], res[0]], {
-          radius: outer_radius,
-          'fillColor': "#d5dce6",
-          'fillOpacity': 0.35,
-          "color": "black",
-          "weight": 4,
-          "opacity": 0.55
-        }).addTo(mymap);
-
-        circle2 = L.circle([res[1], res[0]], {
-          radius: inner_radius,
-          'fillColor': "#8296b5",
-          'fillOpacity': 0.75,
-          "color": "black",
-          "weight": 4,
-          "opacity": 0.55
-        }).addTo(mymap);
-
-        $("#circles").html('Hide Zones');
-        // var marker = L.marker([40.64316461309677, 22.93441007414772]).addTo(mymap);
-
-      } else {
-        mymap.removeLayer(circle1);
-        mymap.removeLayer(circle2);
-        mymap.removeLayer(centroid1);
-        $("#circles").html('Show Zones');
-
-      }
-    }
-
-    // var testvar = geojson.getLayers();
-    // for (var incid of testvar) { /* do stuff */
-    //   alert(incid.feature.properties.id.
-    //     '  '.incid.feature.geometry);
-    // }
-
-    // alert(geojsonFeature.features[0].properties.centroid);
-
-    // var marker = L.marker([40.58798254168363, 22.97053825267842]).addTo(mymap);
-
-
-
-  });
-
-
-  $("#zones").click(function(e) {
-    e.preventDefault();
-
-    var zones = [];
-    var spots = [];
-    var ids = [];
-
-    if (geojsonFeature !== null) {
-
-      for (var i = 0; i < geojsonFeature.features.length; i++) {
-        var properties = geojsonFeature.features[i].properties;
-        ids[i] = properties.id
-        var population = properties.population;
-        var centre = properties.centroid;
-        var latlng_point = L.latLng(res[1], res[0]);
-        var latlng_centroid = L.latLng(centre.coordinates[1], centre.coordinates[0]);
-        // alert(centre.distanceTo(centroid));
-        // L.geoJSON(centre).addTo(mymap);
-        // alert(centre);
-        // alert(latlng_point.distanceTo(latlng_centroid));
-        var dist = latlng_point.distanceTo(latlng_centroid);
-        if (dist <= 1500) {
-          zones[i] = 'kentro';
-          var coef = 1;
-        } else if (dist > 1500 && dist <= 3000) {
-          zones[i] = 'home';
-          var coef = 2;
-        } else {
-          zones[i] = 'steady';
-          var coef = 3;
-        }
-
-        spots[i] = Math.ceil(coef * (population / 3));
-      }
-    }
-
-    var jsonZones = JSON.stringify(zones);
-    var jsonSpots = JSON.stringify(spots);
-    var jsonIDs = JSON.stringify(ids);
-    // alert(jsonString);
-    $.ajax({
-      type: "POST",
-      url: "/resp2.php",
-      data: {
-        registration: "success",
-        zones: jsonZones,
-        spots: jsonSpots,
-        ids: jsonIDs
-      },
-      success: function(result) {
-
-        // alert("Zones are now loaded on the DB");
-        alert(result);
-
-      },
-      error: function(result) {
-        alert('error');
-      }
-    });
-  });
-</script>
 
 </html>
