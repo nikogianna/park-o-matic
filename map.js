@@ -6,31 +6,6 @@ var myStyle = {
   "opacity": 0.55
 };
 
-var myStyle2 = {
-  'fillColor': "#3dbf4c",
-  'fillOpacity': 0.45,
-  "color": "black",
-  "weight": 4,
-  "opacity": 0.55
-};
-
-var myStyle3 = {
-  'fillColor': "#f2fa02",
-  'fillOpacity': 0.55,
-  "color": "black",
-  "weight": 4,
-  "opacity": 0.55
-};
-
-var myStyle4 = {
-  'fillColor': "#fa0202",
-  'fillOpacity': 0.55,
-  "color": "black",
-  "weight": 4,
-  "opacity": 0.55
-};
-
-
 function highlightFeature(e) {
   var layer = e.target;
 
@@ -48,7 +23,17 @@ function highlightFeature(e) {
 }
 
 function resetHighlight(e) {
-  geojson.resetStyle(e.target);
+  if (e.target.colo !== 'changed') {
+    geojson.resetStyle(e.target);
+  } else {
+    e.target.setStyle({
+      fillColor: e.target.colori,
+      'fillOpacity': 0.45,
+      "color": "black",
+      "weight": 4,
+      "opacity": 0.55
+    });
+  }
   info.update();
 }
 
@@ -63,10 +48,13 @@ function onEachFeature2(feature, layer) {
     click: aler
   });
 }
+
 function onEachFeature3(feature, layer) {
+  geojson.resetStyle(layer);
+
   layer.on({
-    // mouseover: highlightFeature2,
-    // mouseout: resetHighlight2,
+    mouseover: highlightFeature,
+    mouseout: resetHighlight,
     click: aler
   });
 }
@@ -101,6 +89,7 @@ function aler(e) {
   var inputSpots = null;
   var id = null;
   var zone;
+  var spots;
   marker = e.target,
     properties = e.target.feature.properties;
 
@@ -113,10 +102,11 @@ function aler(e) {
 
   id = properties.id;
   inputSpots = L.DomUtil.get('input-spots');
-  spots = inputSpots.value;
+  // spots = inputSpots.value;
   L.DomEvent.addListener(inputSpots, 'change', function(e) {
     spots = e.target.value;
   });
+  spots = inputSpots.value;
 
   zone = L.DomUtil.get('zones-select');
   choice = zone.value;
@@ -128,6 +118,7 @@ function aler(e) {
   L.DomEvent.addListener(buttonSubmit, 'click', function(e) {
     marker.closePopup();
 
+    var response = "";
 
     $.ajax({
       type: "POST",
@@ -140,6 +131,36 @@ function aler(e) {
       success: function(result) {
 
         alert(result);
+        response = result;
+        if (!result.includes("No change made for polygon with ID:")) {
+          $.ajax({
+            type: "POST",
+            url: "/resp.php",
+            dataType: 'json',
+            data: {
+              registration: "success",
+              name: "xyz",
+              email: "abc@gmail.com"
+            },
+            success: function(result) {
+
+              mymap.eachLayer(function(layer) {
+                mymap.removeLayer(layer);
+              });
+              mymap.addLayer(openmap);
+
+              geojsonFeature = jQuery.parseJSON(result.abc);
+              geojson = L.geoJson(geojsonFeature, {
+                style: myStyle,
+                onEachFeature: onEachFeature2
+              }).addTo(mymap);
+
+            },
+            error: function(result) {
+              alert('error');
+            }
+          });
+        }
 
       },
       error: function(result) {
@@ -188,62 +209,90 @@ $("#circles").click(function(e) {
     }
   }
 });
-  // var marker = L.marker([40.58798254168363, 22.97053825267842]).addTo(mymap);
+// var marker = L.marker([40.58798254168363, 22.97053825267842]).addTo(mymap);
 
-  $("#zones").click(function(e) {
-    e.preventDefault();
+$("#zones").click(function(e) {
+  e.preventDefault();
 
-    var zones = [];
-    var spots = [];
-    var ids = [];
+  var zones = [];
+  var spots = [];
+  var ids = [];
 
-    if (geojsonFeature !== null) {
+  if (geojsonFeature !== null) {
 
-      for (var i = 0; i < geojsonFeature.features.length; i++) {
-        var properties = geojsonFeature.features[i].properties;
-        ids[i] = properties.id
-        var population = properties.population;
-        var centre = properties.centroid;
-        var latlng_point = L.latLng(res[1], res[0]);
-        var latlng_centroid = L.latLng(centre.coordinates[1], centre.coordinates[0]);
+    for (var i = 0; i < geojsonFeature.features.length; i++) {
+      var properties = geojsonFeature.features[i].properties;
+      ids[i] = properties.id
+      var population = properties.population;
+      var centre = properties.centroid;
+      var latlng_point = L.latLng(res[1], res[0]);
+      var latlng_centroid = L.latLng(centre.coordinates[1], centre.coordinates[0]);
 
-        var dist = latlng_point.distanceTo(latlng_centroid);
-        if (dist <= 1500) {
-          zones[i] = 'kentro';
-          var coef = 1;
-        } else if (dist > 1500 && dist <= 3000) {
-          zones[i] = 'home';
-          var coef = 2;
-        } else {
-          zones[i] = 'steady';
-          var coef = 3;
-        }
-
-        spots[i] = Math.ceil(coef * (population / 3));
+      var dist = latlng_point.distanceTo(latlng_centroid);
+      if (dist <= 1500) {
+        zones[i] = 'kentro';
+        var coef = 1;
+      } else if (dist > 1500 && dist <= 3000) {
+        zones[i] = 'home';
+        var coef = 2;
+      } else {
+        zones[i] = 'steady';
+        var coef = 3;
       }
+
+      spots[i] = Math.ceil(coef * (population / 3));
     }
+  }
 
-    var jsonZones = JSON.stringify(zones);
-    var jsonSpots = JSON.stringify(spots);
-    var jsonIDs = JSON.stringify(ids);
-    // alert(jsonString);
-    $.ajax({
-      type: "POST",
-      url: "/resp2.php",
-      data: {
-        registration: "success",
-        zones: jsonZones,
-        spots: jsonSpots,
-        ids: jsonIDs
-      },
-      success: function(result) {
+  var jsonZones = JSON.stringify(zones);
+  var jsonSpots = JSON.stringify(spots);
+  var jsonIDs = JSON.stringify(ids);
+  // alert(jsonString);
+  $.ajax({
+    type: "POST",
+    url: "/resp2.php",
+    data: {
+      registration: "success",
+      zones: jsonZones,
+      spots: jsonSpots,
+      ids: jsonIDs
+    },
+    success: function(result) {
 
-        // alert("Zones are now loaded on the DB");
-        alert(result);
+      // alert("Zones are now loaded on the DB");
+      alert(result);
 
-      },
-      error: function(result) {
-        alert('error');
-      }
-    });
+    },
+    error: function(result) {
+      alert('error');
+    }
   });
+
+  $.ajax({
+    type: "POST",
+    url: "/resp.php",
+    dataType: 'json',
+    data: {
+      registration: "success",
+      name: "xyz",
+      email: "abc@gmail.com"
+    },
+    success: function(result) {
+
+      geojsonFeature = jQuery.parseJSON(result.abc);
+      geojson = L.geoJson(geojsonFeature, {
+        style: myStyle,
+        onEachFeature: onEachFeature2
+      }).addTo(mymap);
+
+      // mymap.fitBounds(geojson.getBounds());
+      //
+      // centroid = turf.centroid(geojsonFeature);
+      // res = String(centroid.geometry.coordinates).split(",");
+
+    },
+    error: function(result) {
+      alert('error');
+    }
+  });
+});

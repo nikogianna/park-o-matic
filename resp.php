@@ -2,13 +2,14 @@
 
 require_once 'db_config.php';
 
-foreach ($dbh->query("SELECT AsText(polygonx), id, AsText(centroid), population, AsText(multipol) from coord") as $row) {
+foreach ($dbh->query("SELECT AsText(polygonx), id, AsText(centroid), population, AsText(multipol), spots from coord") as $row) {
     // print_r($row);
     $ini[] = $row[0];
     $idi[] = $row[1];
     $cen[] = $row[2];
     $pop[] = $row[3];
     $ini2[] = $row[4];
+    $spots[] = $row[5];
 }
 
 // foreach ($dbh->query("SELECT AsText(multipol), id, AsText(centroid), population from coord WHERE multipol IS NOT NULL") as $row3) {
@@ -38,7 +39,8 @@ foreach ($ini as $inp) {
         $out[] = '{
       "type": "Feature",
       "geometry": ' . $row2[0] . ', "properties": { "id": ' . $idi[$i] . ', ' . '"centroid": ' . ' ' . $row2[1] . ', '
-       . '"population": ' . ' ' . $pop[$i] . ' '
+       . '"population": ' . ' ' . $pop[$i] . ', '
+        . '"spots": ' . ' "' . $spots[$i] . '" '
        . '}}' ;
     }
 }

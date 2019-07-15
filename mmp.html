@@ -21,14 +21,37 @@
   <form id="time-form">
     <div class="form-group">
       <label for="input-spots">Time To Start From:</label>
-      <input class="form-inline" id="time" name="time" type="number" min="0" max="23" step="1" aria-describedby="helpBlock">
+      <input class="form-inline" id="time" name="time" type="number" min="0" max="23" step="1" aria-describedby="helpBlock" required />
       <small id="helpBlock" class="text-muted">
         Must be a number between 0 and 23.
       </small>
     </div>
-    <button class="btn btn-primary" id="button-submit" type="button">Start Sim</button>
+
+    <div class="form-group">
+      <label for="volume">Time Step</label>
+      <input type="range" id="step" name="step" min="0" max="59" value="0" autocomplete="off">
+      <label for="volume" id="demo"></label>
+      <!-- <div id="demo"> -->
+    </div>
+    <!-- <br><br/> -->
+    <div class="form-group">
+      <input type="hidden" id="button_action" name="button_action" />
+      <input class="btn btn-primary" id="action" type="submit" name="action" value="Start" />
+      <input class="btn btn-primary" id="next" type="submit" name="next" value="Next" style="display:none;" />
+      <input class="btn btn-primary" id="previous" type="submit" name="previous" value="Previous" style="display:none;" />
+    </div>
   </form>
 
+  <script>
+    var slider = document.getElementById("step");
+    var output = document.getElementById("demo");
+    output.innerHTML = slider.value; // Display the default slider value
+
+    // Update the current slider value (each time you drag the slider handle)
+    slider.oninput = function() {
+      output.innerHTML = this.value;
+    }
+  </script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 </body>
 
@@ -37,65 +60,80 @@
 
 
 <script type="text/javascript">
-  $("#button-submit").click(function(e) {
+  $('input[type=submit]').click(function() {
+    $('#button_action').val($(this).attr('name'));
+  });
+
+
+  $('#time-form').on('submit', function(e) {
     e.preventDefault();
+    // $('#button_action').val(e.attr('name'));
     $.ajax({
       type: "POST",
       url: "/sim_resp.php",
       data: $("#time-form").serialize(),
       success: function(result) {
-
-        // alert(result);
-        // var jsonObj = JSON.stringify(JSON.parse(result));
+        alert(result);
+        $("#next").css("display", "block");
+        $("#previous").css("display", "block");
         var jsonObj = JSON.parse(result);
 
-        // alert(jsonObj);
-        var spots = [];
-        // var spots = [];
+        var taken_spots = [];
         var ids = [];
-
-        // var polyg = geojsonFeature.features[];
 
         for (var i = 0; i < jsonObj.polygons.length; i++) {
           // ids[i + 1] = jsonObj.polygons[i].id;
-          spots[i + 1] = jsonObj.polygons[i].taken_spots;
-          // polyg.
-          // alert(jsonObj.polygons[i].id);
+          taken_spots[i + 1] = jsonObj.polygons[i].taken_spots;
 
         }
-        // alert(jsonObj.polygons[0].id);
-
-        // if (geojsonFeature !== null) {
-
-        // for (var i = 0; i < geojsonFeature.features.length; i++) {
-
-        // var polyg = geojsonFeature.features[i];
-        // var properties = geojsonFeature.features[i].properties;
-        // if (spots[i + 1] !== 'null') {
-        //   polyg.setStyle({
-        //     color: "#4B1BDE"
-        //   });
 
         geojson.eachLayer(function(layer) {
-          if (spots[layer.feature.properties.id] !== 'null') {
-            layer.setStyle({
-              fillColor: 'blue'
-            });
+
+          var taken_spot = taken_spots[layer.feature.properties.id];
+          var free_spot = layer.feature.properties.spots;
+
+          if (taken_spot !== 'null' && free_spot !== "") {
+
+            var percentage = Math.round((taken_spot / free_spot) * 100) / 100;
+
+            // alert(taken_spot);
+            // alert(percentage);
+            layer.colo = 'changed';
+
+            if (percentage <= 0.59) {
+              layer.setStyle({
+                fillColor: 'white'
+              });
+              layer.setStyle({
+                fillColor: 'green'
+              });
+              layer.colori = 'green';
+            } else if ((percentage > 0.59) && (percentage <= 0.84)) {
+
+              layer.setStyle({
+                fillColor: 'white'
+              });
+              layer.setStyle({
+                fillColor: 'yellow'
+              });
+              layer.colori = 'yellow';
+            } else if (percentage > 0.84) {
+
+              layer.setStyle({
+                fillColor: 'white'
+              });
+              layer.setStyle({
+                fillColor: 'red'
+              });
+              layer.colori = 'red';
+            }
           }
         });
-        geojson = L.geoJson(geojsonFeature, {
-          style: myStyle,
-          onEachFeature: onEachFeature2
-        }).addTo(mymap);
-        // alert("We have a match");
-        // alert(ids[i + 1]);
-        // alert(properties.id);
-        // }
 
-
-
-        // }
-        alert(spots[2364]);
+        // geojson = L.geoJson(geojsonFeature, {
+        //   style: myStyle,
+        //   onEachFeature: onEachFeature2
+        // }).addTo(mymap);
 
       },
       error: function(result) {

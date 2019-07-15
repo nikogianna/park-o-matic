@@ -4,7 +4,10 @@ require_once 'db_config.php';
 
 $time = $_POST['time'];
 
-// echo $time;
+$step = $_POST['step'];
+
+$choi = $_POST['button_action'];
+echo $choi;
 
 // foreach ($dbh->query("SELECT id, AsText(centroid), population, zone, spots  from coord WHERE
 // (
@@ -45,6 +48,7 @@ foreach ($id as $polyg) {
         //Taken spots are calculated here
         $steady_dem = 0.2 * $population[$i];
         $taken_spots = ceil($steady_dem + ($row12[$zone[$i]] * ($spots[$i] - $steady_dem)));
+        if ($taken_spots > $spots[$i]) { $taken_spots = $spots[$i];}
         ////
     }
     $values = array($polyg, $centroid[$i], $taken_spots);
@@ -65,4 +69,21 @@ $data = rtrim($data, ', ');
 
 $data = $data . '] }';
 
-echo $data;
+$time = ($time * 60) + $step;
+// $time = $tim;
+
+function convertToHoursMins($time, $format = '%1d:%02d') {
+    if ($time < 1) {
+        return;
+    }
+    $hours = floor($time / 60);
+    $minutes = ($time % 60);
+    return sprintf($format, $hours, $minutes);
+}
+
+
+echo convertToHoursMins($time);
+
+// echo $data;
+
+// echo $choi;
