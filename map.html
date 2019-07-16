@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="initial-scale=1.0">
+  <meta charset="utf-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
+  <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+  <link rel="stylesheet" type="text/css" href="mystyle.css">
+
+  <title>Simple Map</title>
+</head>
+
+<body>
+  <div id="mapid2"></div>
+  <form id="form_time">
+    <label for="time">Start Time</label>
+    <input class="form-inline" type="range" id="time" name="time" min="0" max="23" value="0" autocomplete="off">
+    <label for="time" id="demo2"></label>
+    <button class="btn btn-primary btn-block" id="Start" type="Submit">Start Simulation</button>
+  </form>
+</body>
+
+<script>
+  var slider = document.getElementById("time");
+  var output = document.getElementById("demo2");
+  output.innerHTML = slider.value; // Display the default slider value
+  slider.oninput = function() {
+    output.innerHTML = this.value;
+  }
+
+  var geojsonFeature;
+  var geojson;
+  var centroid;
+  var res;
+
+  var openmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map tiles by <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    minZoom: 0
+  });
+  var mymap = L.map('mapid2');
+  // mymap.fitWorld();
+  mymap.addLayer(openmap);
+
+  $(document).ready(function() {
+    $.ajax({
+      type: "POST",
+      url: "/resp.php",
+      dataType: 'json',
+      data: {
+        registration: "success",
+        name: "xyz",
+        email: "abc@gmail.com"
+      },
+      success: function(result) {
+
+        geojsonFeature = jQuery.parseJSON(result.abc);
+        geojson = L.geoJson(geojsonFeature, {
+          style: myStyle1,
+          onEachFeature: onEachFeature3
+        }).addTo(mymap);
+
+        mymap.fitBounds(geojson.getBounds());
+
+        centroid = turf.centroid(geojsonFeature);
+        res = String(centroid.geometry.coordinates).split(",");
+
+        sim_resp2(false);
+
+
+      },
+      error: function(result) {
+        alert('error');
+      }
+    });
+  });
+
+  $('#form_time').on('submit', function(e) {
+    e.preventDefault();
+    sim_resp2(true);
+  });
+</script>
+
+<script type="text/javascript" src='map.js'></script>
+
+<script type="text/javascript">
+  function sim_resp2(flag) {
+
+    var data;
+
+    if (flag) {
+      data = $("#form_time").serialize();
+    } else {
+      data = null;
+    }
+
+    $.ajax({
+      type: "POST",
+      url: "/sim_resp2.php",
+      data: data,
+      success: function(result) {
+
+        var jsonObj = JSON.parse(result);
+
+        var taken_spots = [];
+        var ids = [];
+
+        for (var i = 0; i < jsonObj.polygons.length; i++) {
+          taken_spots[i + 1] = jsonObj.polygons[i].taken_spots;
+        }
+
+        geojson.eachLayer(function(layer) {
+
+          var taken_spot = taken_spots[layer.feature.properties.id];
+          var free_spot = layer.feature.properties.spots;
+
+          if (taken_spot !== 'null' && free_spot !== "") {
+
+            var percentage = Math.round((taken_spot / free_spot) * 100) / 100;
+
+            layer.colo = 'changed';
+
+            if (percentage <= 0.59) {
+              layer.setStyle({
+                fillColor: 'white'
+              });
+              layer.setStyle({
+                fillColor: 'green'
+              });
+              layer.colori = 'green';
+            } else if ((percentage > 0.59) && (percentage <= 0.84)) {
+
+              layer.setStyle({
+                fillColor: 'white'
+              });
+              layer.setStyle({
+                fillColor: 'yellow'
+              });
+              layer.colori = 'yellow';
+            } else if (percentage > 0.84) {
+
+              layer.setStyle({
+                fillColor: 'white'
+              });
+              layer.setStyle({
+                fillColor: 'red'
+              });
+              layer.colori = 'red';
+            }
+          }
+        });
+
+      },
+      error: function(result) {
+        alert('error');
+      }
+    });
+  }
+</script>
+
+</html>

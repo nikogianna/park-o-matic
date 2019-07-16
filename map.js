@@ -6,6 +6,14 @@ var myStyle = {
   "opacity": 0.55
 };
 
+var myStyle1 = {
+  'fillColor': "#909396",
+  'fillOpacity': 0.35,
+  "color": "black",
+  "weight": 2,
+  "opacity": 0.35
+};
+
 function highlightFeature(e) {
   var layer = e.target;
 
@@ -37,6 +45,35 @@ function resetHighlight(e) {
   info.update();
 }
 
+function highlightFeature2(e) {
+  var layer = e.target;
+
+  layer.setStyle({
+    weight: 5,
+    color: '#666',
+    dashArray: '',
+    fillOpacity: 0.7
+  });
+
+  if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+    layer.bringToFront();
+  }
+}
+
+function resetHighlight2(e) {
+  if (e.target.colo !== 'changed') {
+    geojson.resetStyle(e.target);
+  } else {
+    e.target.setStyle({
+      fillColor: e.target.colori,
+      'fillOpacity': 0.45,
+      "color": "black",
+      "weight": 4,
+      "opacity": 0.55
+    });
+  }
+}
+
 function zoomToFeature(e) {
   mymap.fitBounds(e.target.getBounds());
 }
@@ -50,13 +87,22 @@ function onEachFeature2(feature, layer) {
 }
 
 function onEachFeature3(feature, layer) {
-  geojson.resetStyle(layer);
-
   layer.on({
-    mouseover: highlightFeature,
-    mouseout: resetHighlight,
-    click: aler
+    mouseover: highlightFeature2,
+    mouseout: resetHighlight2,
+    click: aler2
   });
+}
+
+function aler2(e) {
+  // mymap.on('click', function(e) {
+    alert("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
+  // });
+  marker = e.target,
+    properties = e.target.feature.properties;
+    markerGroup.clearLayers();
+    marker_point = L.marker(e.latlng).addTo(markerGroup);
+
 }
 
 var template = '<form>\
@@ -139,7 +185,7 @@ function aler(e) {
           $("#next").css("display", "none");
           $("#previous").css("display", "none");
           $("#reset").css("display", "none");
-          
+
           $.ajax({
             type: "POST",
             url: "/resp.php",
