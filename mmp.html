@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
   <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
-
   <link rel="stylesheet" type="text/css" href="mystyle.css">
 
   <title>Simulation</title>
@@ -17,30 +16,52 @@
 
 <body>
   <div id="mapid"></div>
+  <div class="container">
+    <div class="row">
 
-  <form id="time-form">
-    <div class="form-group">
-      <label for="input-spots">Time To Start From:</label>
-      <input class="form-inline" id="time" name="time" type="number" min="0" max="23" step="1" aria-describedby="helpBlock" required />
-      <small id="helpBlock" class="text-muted">
-        Must be a number between 0 and 23.
-      </small>
+      <form id="time-form" autocomplete="off">
+        <div class="row">
+
+          <div class="form-group col-sm-6">
+            <label for="time">Start Time</label>
+            <input class="form-inline" type="range" id="time" name="time" min="0" max="23" value="0" autocomplete="off">
+            <label for="time" id="demo2"></label>
+          </div>
+
+          <div class="form-group col-sm-6">
+            <label for="volume">Time Step</label>
+            <input class="form-inline" type="range" id="step" name="step" min="0" max="59" value="0" autocomplete="off">
+            <label for="volume" id="demo"></label>
+          </div>
+        </div>
+
+        <!-- <br><br /> -->
+        <div class="form-group row">
+          <div class="col-sm-4">
+          </div>
+          <div class="col-sm-4">
+            <input class="btn btn-primary btn-block" id="reset" type="button" name="reset" value="Reset" style="display:none;" />
+            <!-- <input type="hidden" id="button_action" name="button_action" /> -->
+          </div>
+          <div class="col-sm-4">
+          </div>
+        </div>
+        <div class="form-group row">
+          <input type="hidden" id="button_action" name="button_action" />
+          <div class="col-sm-4">
+            <input class="btn btn-primary btn-block" id="previous" type="submit" name="previous" value="Previous" style="display:none;" />
+          </div>
+          <div class="col-sm-4">
+            <input class="btn btn-primary btn-block" id="action" type="submit" name="action" value="Start" />
+          </div>
+          <div class="col-sm-4">
+            <input class="btn btn-primary btn-block" id="next" type="submit" name="next" value="Next" style="display:none;" />
+          </div>
+        </div>
+      </form>
     </div>
 
-    <div class="form-group">
-      <label for="volume">Time Step</label>
-      <input type="range" id="step" name="step" min="0" max="59" value="0" autocomplete="off">
-      <label for="volume" id="demo"></label>
-      <!-- <div id="demo"> -->
-    </div>
-    <!-- <br><br/> -->
-    <div class="form-group">
-      <input type="hidden" id="button_action" name="button_action" />
-      <input class="btn btn-primary" id="action" type="submit" name="action" value="Start" />
-      <input class="btn btn-primary" id="next" type="submit" name="next" value="Next" style="display:none;" />
-      <input class="btn btn-primary" id="previous" type="submit" name="previous" value="Previous" style="display:none;" />
-    </div>
-  </form>
+  </div>
 
   <script>
     var slider = document.getElementById("step");
@@ -51,6 +72,23 @@
     slider.oninput = function() {
       output.innerHTML = this.value;
     }
+
+    var slider2 = document.getElementById("time");
+    var output2 = document.getElementById("demo2");
+    output2.innerHTML = slider2.value;
+
+    slider2.oninput = function() {
+      output2.innerHTML = this.value;
+    }
+
+    $('#reset').click(function() {
+      $("#action").prop("disabled", false);
+      $("#time").prop("disabled", false);
+      $("#step").prop("disabled", false);
+      $("#next").css("display", "none");
+      $("#previous").css("display", "none");
+      $("#reset").css("display", "none");
+    });
   </script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 </body>
@@ -64,27 +102,29 @@
     $('#button_action').val($(this).attr('name'));
   });
 
-
   $('#time-form').on('submit', function(e) {
     e.preventDefault();
-    // $('#button_action').val(e.attr('name'));
+
     $.ajax({
       type: "POST",
       url: "/sim_resp.php",
       data: $("#time-form").serialize(),
       success: function(result) {
-        alert(result);
+        // alert(result);
+        $("#action").prop("disabled", true);
+        $("#time").prop("disabled", true);
+        $("#step").prop("disabled", true);
         $("#next").css("display", "block");
         $("#previous").css("display", "block");
+        $("#reset").css("display", "block");
+
         var jsonObj = JSON.parse(result);
 
         var taken_spots = [];
         var ids = [];
 
         for (var i = 0; i < jsonObj.polygons.length; i++) {
-          // ids[i + 1] = jsonObj.polygons[i].id;
           taken_spots[i + 1] = jsonObj.polygons[i].taken_spots;
-
         }
 
         geojson.eachLayer(function(layer) {
@@ -96,8 +136,6 @@
 
             var percentage = Math.round((taken_spot / free_spot) * 100) / 100;
 
-            // alert(taken_spot);
-            // alert(percentage);
             layer.colo = 'changed';
 
             if (percentage <= 0.59) {
@@ -129,11 +167,6 @@
             }
           }
         });
-
-        // geojson = L.geoJson(geojsonFeature, {
-        //   style: myStyle,
-        //   onEachFeature: onEachFeature2
-        // }).addTo(mymap);
 
       },
       error: function(result) {

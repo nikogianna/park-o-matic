@@ -133,6 +133,13 @@ function aler(e) {
         alert(result);
         response = result;
         if (!result.includes("No change made for polygon with ID:")) {
+          $("#action").prop("disabled", false);
+          $("#time").prop("disabled", false);
+          $("#step").prop("disabled", false);
+          $("#next").css("display", "none");
+          $("#previous").css("display", "none");
+          $("#reset").css("display", "none");
+          
           $.ajax({
             type: "POST",
             url: "/resp.php",

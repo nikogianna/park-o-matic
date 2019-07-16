@@ -2,13 +2,69 @@
 
 require_once 'db_config.php';
 
-$time = $_POST['time'];
+// $_SESSION = array();
+// session_destroy();
+session_start();
 
-$step = $_POST['step'];
+if (!isset($_SESSION["time"])) {
+    $_SESSION["time"] = 0;
+} else {
+    $time = $_SESSION["time"];
+}
+
+if (!isset($_SESSION["step"])) {
+    $_SESSION["step"] = 0;
+} else {
+    $step = $_SESSION["step"];
+}
+
+$temp_time = $_POST['time'];
+
+$temp_step = $_POST['step'];
 
 $choi = $_POST['button_action'];
-echo $choi;
 
+// echo $_SESSION["step"];
+// echo '</br>';
+//
+// echo $step;
+
+
+if ($choi == 'action') {
+
+    $time = $temp_time * 60;
+    $_SESSION["step"] = $temp_step;
+} elseif ($choi == 'next') {
+    $time = $time + $step;
+} elseif ($choi == 'previous') {
+
+    $time = $time - $step;
+
+    if ($time < 0) {
+      //24 * 60 = 1440
+      $time = 1440 - $step;
+    }
+}
+
+// echo '</br>';
+//
+// echo $time;
+$_SESSION["time"] = $time;
+$hour = floor($time / 60);
+// echo '</br>';
+//
+// echo $hour;
+
+function convertToHoursMins($time, $format = '%1d:%02d')
+{
+    // if ($time < 1) {
+    //     return;
+    // }
+    $hours = floor($time / 60);
+    $minutes = ($time % 60);
+    return sprintf($format, $hours, $minutes);
+
+}
 // foreach ($dbh->query("SELECT id, AsText(centroid), population, zone, spots  from coord WHERE
 // (
 //     zone IS NOT NULL
@@ -25,12 +81,7 @@ foreach ($dbh->query("SELECT id, AsText(centroid), population, zone, spots  from
     $zone[] = $row[3];
     $spots[] = $row[4];
 }
-// if ($id == null) {
-//     // echo "You have to initialise the DB with zones and parking spots before the simulation can be used.";
-//     exit("You have to initialise the DB with zones and parking spots before the simulation can be used.");
-// }
 
-// echo $id[0];
 $stmt = $dbh->prepare("SELECT * from zones WHERE time = ?");
 $exp = array();
 
@@ -42,13 +93,15 @@ foreach ($id as $polyg) {
 
     if (($zone[$i] !== null) && ($spots[$i] !== null)) {
         // echo $zone[$i];
-        $stmt->execute([$time]);
+        $stmt->execute([$hour]);
         $row12 = $stmt->fetch();
 
         //Taken spots are calculated here
         $steady_dem = 0.2 * $population[$i];
         $taken_spots = ceil($steady_dem + ($row12[$zone[$i]] * ($spots[$i] - $steady_dem)));
-        if ($taken_spots > $spots[$i]) { $taken_spots = $spots[$i];}
+        if ($taken_spots > $spots[$i]) {
+            $taken_spots = $spots[$i];
+        }
         ////
     }
     $values = array($polyg, $centroid[$i], $taken_spots);
@@ -58,7 +111,7 @@ foreach ($id as $polyg) {
 }
 
 $data = '{
-"time": ' . $time . ', ' . '
+"time": ' . '"' . convertToHoursMins($time) . '"' . ', ' . '
 "polygons": [';
 
 foreach ($out as $polygon) {
@@ -69,21 +122,6 @@ $data = rtrim($data, ', ');
 
 $data = $data . '] }';
 
-$time = ($time * 60) + $step;
-// $time = $tim;
-
-function convertToHoursMins($time, $format = '%1d:%02d') {
-    if ($time < 1) {
-        return;
-    }
-    $hours = floor($time / 60);
-    $minutes = ($time % 60);
-    return sprintf($format, $hours, $minutes);
-}
-
-
-echo convertToHoursMins($time);
-
-// echo $data;
+echo $data;
 
 // echo $choi;
