@@ -21,143 +21,299 @@
     <label for="time" id="demo2"></label>
     <button class="btn btn-primary btn-block" id="Start" type="Submit">Start Simulation</button>
   </form>
+
+  <form id="form_sug">
+    <label for="sug_time">Time Of Arrival</label>
+    <input class="form-inline" type="range" id="sug_time" name="sug_time" min="0" max="23" value="0" autocomplete="off">
+    <label for="sug_time" id="demo"></label>
+
+    <label for="distance">Max Distance</label>
+    <input class="form-inline" type="range" id="distance" name="distance" min="0" max="600" step="10" value="0" autocomplete="off">
+    <label for="distance" id="demo3"></label>
+    <button class="btn btn-primary btn-block" id="Get_Sug" type="Submit">Get Suggestion</button>
+  </form>
 </body>
 
+<script type="text/javascript" src='slider.js'></script>
+
 <script>
-  var slider = document.getElementById("time");
-  var output = document.getElementById("demo2");
-  output.innerHTML = slider.value; // Display the default slider value
-  slider.oninput = function() {
-    output.innerHTML = this.value;
-  }
-
-  var geojsonFeature;
-  var geojson;
-  var centroid;
-  var res;
-
-  var openmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: 'Map tiles by <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    minZoom: 0
-  });
-  var mymap = L.map('mapid2');
-  // mymap.fitWorld();
-  mymap.addLayer(openmap);
-
-  $(document).ready(function() {
-    $.ajax({
-      type: "POST",
-      url: "/resp.php",
-      dataType: 'json',
-      data: {
-        registration: "success",
-        name: "xyz",
-        email: "abc@gmail.com"
-      },
-      success: function(result) {
-
-        geojsonFeature = jQuery.parseJSON(result.abc);
-        geojson = L.geoJson(geojsonFeature, {
-          style: myStyle1,
-          onEachFeature: onEachFeature3
-        }).addTo(mymap);
-
-        mymap.fitBounds(geojson.getBounds());
-
-        centroid = turf.centroid(geojsonFeature);
-        res = String(centroid.geometry.coordinates).split(",");
-
-        sim_resp2(false);
-
-
-      },
-      error: function(result) {
-        alert('error');
-      }
-    });
-  });
-
   $('#form_time').on('submit', function(e) {
     e.preventDefault();
     sim_resp2(true);
   });
-</script>
+  var points_array = [];
+  var z = 0;
+  // randomPointInPoly = function(polygon) {
+  //   var bounds = polygon.getBounds();
+  //   var x_min = bounds.getEast();
+  //   var x_max = bounds.getWest();
+  //   var y_min = bounds.getSouth();
+  //   var y_max = bounds.getNorth();
+  //
+  //   var lat = y_min + (Math.random() * (y_max - y_min));
+  //   var lng = x_min + (Math.random() * (x_max - x_min));
+  //
+  //   var point = turf.point([lng, lat]);
+  //   var poly = polygon.toGeoJSON();
+  //   var inside = turf.inside(point, poly);
+  //
+  //   if (inside) {
+  //     return point
+  //   } else {
+  //     return randomPointInPoly(polygon)
+  //   }
+  // }
 
-<script type="text/javascript" src='map.js'></script>
 
-<script type="text/javascript">
-  function sim_resp2(flag) {
+  $('#form_sug').on('submit', function(e) {
+    e.preventDefault();
 
-    var data;
-
-    if (flag) {
-      data = $("#form_time").serialize();
+    if (marker_point == null) {
+      alert('First choose where you want to go and the time you will be arriving');
     } else {
-      data = null;
-    }
+      var time = $('#sug_time').val();
+      var distance = $('#distance').val();
+      points_array = [];
+      z = 0;
+      // alert(marker_point.getLatLng());
+      // sim_resp2(true, "#form_sug");
 
-    $.ajax({
-      type: "POST",
-      url: "/sim_resp2.php",
-      data: data,
-      success: function(result) {
+      $.ajax({
+        type: "POST",
+        url: "/sim_resp2.php",
+        data: $('#form_sug').serialize(),
+        success: function(result) {
 
-        var jsonObj = JSON.parse(result);
+          var asd = jQuery.parseJSON(result);
+          // alert(asd.abc);
+          // output = asd.abc;
+          var jsonObj = JSON.parse(asd.abc);
 
-        var taken_spots = [];
-        var ids = [];
+          var taken_spots = [];
 
-        for (var i = 0; i < jsonObj.polygons.length; i++) {
-          taken_spots[i + 1] = jsonObj.polygons[i].taken_spots;
-        }
+          var ids = [];
 
-        geojson.eachLayer(function(layer) {
+          for (var i = 0; i < jsonObj.polygons.length; i++) {
+            taken_spots[i + 1] = jsonObj.polygons[i].taken_spots;
+          }
 
-          var taken_spot = taken_spots[layer.feature.properties.id];
-          var free_spot = layer.feature.properties.spots;
+          geojson.eachLayer(function(layer) {
 
-          if (taken_spot !== 'null' && free_spot !== "") {
+            var taken_spot = taken_spots[layer.feature.properties.id];
+            var total_spot = layer.feature.properties.spots;
 
-            var percentage = Math.round((taken_spot / free_spot) * 100) / 100;
+            if (taken_spot !== 'null' && total_spot !== "") {
 
-            layer.colo = 'changed';
+              var percentage = Math.round((taken_spot / total_spot) * 100) / 100;
 
-            if (percentage <= 0.59) {
-              layer.setStyle({
-                fillColor: 'white'
-              });
-              layer.setStyle({
-                fillColor: 'green'
-              });
-              layer.colori = 'green';
-            } else if ((percentage > 0.59) && (percentage <= 0.84)) {
+              layer.colo = 'changed';
 
-              layer.setStyle({
-                fillColor: 'white'
-              });
-              layer.setStyle({
-                fillColor: 'yellow'
-              });
-              layer.colori = 'yellow';
-            } else if (percentage > 0.84) {
+              if (percentage <= 0.59) {
+                layer.setStyle({
+                  fillColor: 'white'
+                });
+                layer.setStyle({
+                  fillColor: 'green'
+                });
+                layer.colori = 'green';
+              } else if ((percentage > 0.59) && (percentage <= 0.84)) {
 
-              layer.setStyle({
-                fillColor: 'white'
-              });
-              layer.setStyle({
-                fillColor: 'red'
-              });
-              layer.colori = 'red';
+                layer.setStyle({
+                  fillColor: 'white'
+                });
+                layer.setStyle({
+                  fillColor: 'yellow'
+                });
+                layer.colori = 'yellow';
+              } else if (percentage > 0.84) {
+
+                layer.setStyle({
+                  fillColor: 'white'
+                });
+                layer.setStyle({
+                  fillColor: 'red'
+                });
+                layer.colori = 'red';
+              }
+            }
+          });
+
+          if (geojsonFeature !== null) {
+
+            var centroids = [];
+            var spots = [];
+            var ids = [];
+            // var dist = [];
+            for (var i = 0; i < geojsonFeature.features.length; i++) {
+              // for (var i = 0; i < 2; i++) {
+
+
+              var properties = geojsonFeature.features[i].properties;
+              // free_spots = properties.spots - taken_spots[i + 1];
+              // alert(free_spots);
+              // ids[i] = properties.id
+              // var population = properties.population;
+              var centre = properties.centroid;
+              centroids[i] = L.latLng(centre.coordinates[1], centre.coordinates[0]);
+
+              var dist = marker_point.getLatLng().distanceTo(centroids[i]);
+              if (dist <= distance) {
+                // included[y] = properties.id;
+                var free_spots = properties.spots - taken_spots[i + 1];
+                if (free_spots < 0) free_spots = 0;
+                // alert(properties.id);
+
+                // alert(free_spots);
+
+                for (y = 0; y < free_spots;) {
+                  var circle = L.circle(centroids[i], {
+                    radius: 50
+                  }).addTo(mymap);
+                  var bounds = circle.getBounds();
+                  var x_max = bounds.getEast();
+                  var x_min = bounds.getWest();
+                  var y_max = bounds.getSouth();
+                  var y_min = bounds.getNorth();
+
+
+                  var lat = y_min + (Math.random() * (y_max - y_min));
+                  var lng = x_min + (Math.random() * (x_max - x_min));
+                  // var point = turf.point([lng, lat]);
+                  var point = L.latLng(lat, lng);
+
+                  // var poly = circle.toGeoJSON();
+                  // var inside = turf.inside(point, poly);
+                  var dist2 = point.distanceTo(centroids[i]);
+                  var inside = (dist2 <= 50);
+
+                  if (inside) {
+                    points_array[z] = point;
+                    z++;
+                    y++;
+                  }
+                  // alert(x_max);
+                  // alert(y_max);
+
+                  mymap.removeLayer(circle);
+                }
+              }
             }
           }
-        });
+          // var asd2 = JSON.parse(JSON.stringify(points_array[0]));
+          // alert(points_array[0]);
+          //
+          // // alert(asd2.geometry.coordinates);
+          // alert(points_array.length);
+          // // alert(free_spots);
+          // for (var i = 0; i < points_array.length; i++) {
+          //   L.marker(points_array[i]).addTo(mymap);
+          //
+          // }
+          var poin = [];
+          for (var i = 0; i < points_array.length; i++) {
+            poin[i] = turf.point([points_array[i].lng, points_array[i].lat]);
+            // L.geoJSON(poin[i]).addTo(mymap);
+            // L.marker(L.poin[i].latLng).addTo(mymap);
+          }
+          // alert(poin.length);
+          var collection = turf.featureCollection(poin);
+          var clustered = turf.clustersDbscan(collection, 0.05);
+          // alert(clustered);
+          var asd2 = JSON.parse(JSON.stringify(clustered));
+          // alert(JSON.stringify(asd2.features[444].properties.cluster));
+          // alert(JSON.stringify(asd2.features.length));
+          // alert(JSON.stringify(asd2.features[23].properties.cluster));
+          // alert(JSON.stringify(asd2.features));
 
-      },
-      error: function(result) {
-        alert('error');
-      }
-    });
-  }
+          var max_cluster = 0;
+          // asd2.features[].properties.cluster.sort(function(a, b) {
+          //   return a - b
+          // });
+          // alert(JSON.stringify(asd2.features));
+          var clusters = [];
+          for (var i = 0; i < asd2.features.length; i++) {
+
+            clusters[i] = asd2.features[i].properties.cluster
+          }
+          clusters.sort(function(a, b) {
+            return a - b
+          });
+          // alert(clusters);
+
+          var a = [],
+            b = [],
+            prev;
+          for (var i = 0; i < clusters.length; i++) {
+            if (clusters[i] !== prev) {
+              a.push(clusters[i]);
+              b.push(1);
+            } else {
+              b[b.length - 1]++;
+            }
+            prev = clusters[i];
+          }
+
+          // alert(b);
+
+          var maxIndex = 0;
+          var max = b[0];
+
+          for (var i = 1; i < b.length; i++) {
+            if (b[i] > max) {
+              maxIndex = i;
+              max = b[i];
+            }
+          }
+
+          // alert(maxIndex);
+          // alert(max);
+
+          var y = 0;
+          var clust = [];
+          for (var i = 0; i < asd2.features.length; i++) {
+
+
+
+            if (asd2.features[i].properties.cluster == maxIndex) {
+              clust[y] = asd2.features[i].geometry.coordinates;
+              y++;
+            }
+          }
+
+          alert(clust);
+          var poi = [];
+          for (var i = 0; i < clust.length; i++) {
+            var res = String(clust[i]).split(",");
+            poi[i] = turf.point([+res[0], +res[1]]);
+            // L.geoJSON(poi[i]).addTo(mymap);
+          }
+
+
+          var collection2 = turf.featureCollection(poi);
+
+          // alert(collection2);
+          var centroid = turf.centroid(JSON.parse(JSON.stringify(collection2)));
+
+          alert(JSON.stringify(centroid));
+          L.geoJSON(centroid).addTo(markerGroup);
+
+
+          // var myLayer3 = L.geoJSON().addTo(mymap);
+          // myLayer3.addData(clustered.toGeoJSON());
+
+          // L.marker([40.636847, 22.908988]).addTo(mymap);
+          // alert(dist[2363]);
+
+
+        },
+        error: function(result) {
+          alert('error');
+        }
+      }); // alert(dist[2363]);
+    }
+  });
 </script>
 
-</html>
+
+<script type="text/javascript" src='simulation.js'></script>
+<script type="text/javascript" src='map.js'></script>

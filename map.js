@@ -66,10 +66,10 @@ function resetHighlight2(e) {
   } else {
     e.target.setStyle({
       fillColor: e.target.colori,
-      'fillOpacity': 0.45,
+      'fillOpacity': 0.35,
       "color": "black",
-      "weight": 4,
-      "opacity": 0.55
+      "weight": 2,
+      "opacity": 0.35
     });
   }
 }
@@ -96,13 +96,20 @@ function onEachFeature3(feature, layer) {
 
 function aler2(e) {
   // mymap.on('click', function(e) {
-    alert("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
+  // alert("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
   // });
   marker = e.target,
     properties = e.target.feature.properties;
-    markerGroup.clearLayers();
-    marker_point = L.marker(e.latlng).addTo(markerGroup);
+  markerGroup.clearLayers();
+  marker_point = L.marker(e.latlng).on('click', onClickMarker).addTo(markerGroup);
 
+}
+
+function onClickMarker(e) {
+  if (marker_point !== null) {
+    markerGroup.clearLayers();
+    marker_point = null;
+  }
 }
 
 var template = '<form>\

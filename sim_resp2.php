@@ -3,17 +3,24 @@
 require_once 'db_config.php';
 
 $time = $_POST['time'];
+$time2 = $_POST['sug_time'];
 
 // echo $_POST['time'] . '</br>';
 date_default_timezone_set('Europe/Athens');
 // echo date('h:i:s');
 // echo date('H');
 
-if ($time == "" || $time == null) {
+if (($time == "" || $time == null) && ($time2 == "" || $time2 == null)) {
 $time = date('H');
+$cur_time = date('H:i');
 // echo $time;
+} else if ($time == "" || $time == null) {
+  $cur_time = $time2;
+  $time = $time2;
+} else if ($time2 == "" || $time2 == null) {
+  $cur_time = $time;
 }
-// else echo $time . 'asdsadsa';
+
 
 foreach ($dbh->query("SELECT id, AsText(centroid), population, zone, spots  from coord
  ") as $row) {
@@ -66,4 +73,7 @@ $data = rtrim($data, ', ');
 
 $data = $data . '] }';
 
-echo $data;
+// echo $data;
+// echo json_encode(array("abc"=>$data));
+
+echo json_encode(array("abc"=>$data, "time"=>$cur_time));
