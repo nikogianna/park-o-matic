@@ -6,22 +6,22 @@ switch ($_FILES['fileToUpload']['error']) {
         case UPLOAD_ERR_OK:
             break;
         case UPLOAD_ERR_NO_FILE:
-            echo ('No file chosen. Please choose a file to upload');
+            echo('No file chosen. Please choose a file to upload');
             return false;
             // break;
         case UPLOAD_ERR_INI_SIZE:
         case UPLOAD_ERR_FORM_SIZE:
-            echo ('Exceeded filesize limit.');
+            echo('Exceeded filesize limit.');
             // break;
             return false;
         default:
-            echo ('Unknown errors.');
+            echo('Unknown errors.');
             return false;
     }
 
 if (!empty($_FILES['fileToUpload'])) {
-  $path = "/Applications/MAMP/uploads/";
-  $path = $path . basename($_FILES['fileToUpload']['name']);
+    $path = "/Applications/MAMP/uploads/";
+    $path = $path . basename($_FILES['fileToUpload']['name']);
 
     if (!file_exists($path)) {
         $mime = mime_content_type($_FILES['fileToUpload']['tmp_name']);
@@ -50,5 +50,6 @@ if (!empty($_FILES['fileToUpload'])) {
     //   // echo "File already exists";
     // }
     include 'tes_kml.php';
+    header("location: map_edit.html");
     // echo $path;
 }

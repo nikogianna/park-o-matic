@@ -249,6 +249,15 @@ $("#circles").click(function(e) {
       }).addTo(mymap);
 
       circle2 = L.circle([res[1], res[0]], {
+        radius: mid_radius,
+        'fillColor': "#8296b5",
+        'fillOpacity': 0.55,
+        "color": "black",
+        "weight": 4,
+        "opacity": 0.55
+      }).addTo(mymap);
+
+      circle3 = L.circle([res[1], res[0]], {
         radius: inner_radius,
         'fillColor': "#8296b5",
         'fillOpacity': 0.75,
@@ -263,6 +272,7 @@ $("#circles").click(function(e) {
     } else {
       mymap.removeLayer(circle1);
       mymap.removeLayer(circle2);
+      mymap.removeLayer(circle3);
       mymap.removeLayer(centroid1);
       $("#circles").html('Show Zones');
 

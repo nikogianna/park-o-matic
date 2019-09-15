@@ -21,12 +21,16 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 </head>
 <body>
     <div class="page-header">
-        <h1>Hi, <b><?php echo htmlspecialchars($_SESSION["username"]); ?></b>. Welcome to our site.</h1>
+        <h1>Hi, <b><?php echo htmlspecialchars($_SESSION["username"]); ?></b>. Welcome to the admin panel of Park-o-Matic.</h1>
     </div>
+    <p>
+      <a href="map_edit.html" class="btn btn-primary">Edit map</a>
+      <a href="admin_sim.html" class="btn btn-success">Step-wise Simulation</a>
+    </p>
     <p>
         <a href="pswd_reset.php" class="btn btn-warning">Reset Your Password</a>
         <a href="logout.php" class="btn btn-danger">Sign Out of Your Account</a>
-        <a href="account_create.php" class="btn btn-success">Create New Account</a>
+        <a href="account_create.php" class="btn btn-info">Create A New Account</a>
 
     </p>
 </body>

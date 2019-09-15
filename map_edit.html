@@ -4,6 +4,7 @@
 <head>
   <meta name="viewport" content="initial-scale=1.0">
   <meta charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
@@ -14,26 +15,90 @@
 
   <link rel="stylesheet" type="text/css" href="mystyle.css">
 
-  <title>Simple Map</title>
+  <title>Edit Map</title>
+
+  <style type="text/css">
+    input {
+      position: absolute;
+      top: -100px;
+    }
+
+
+    .header {
+      padding: 0.1em;
+      text-align: center;
+      background: #e6f7ff;
+      color: black;
+      font-size: 1.5em;
+    }
+
+    body {
+      background-color: #e6f7ff;
+
+    }
+  </style>
 </head>
 
 <body>
-  <div id="mapid"></div>
-  <button id="circles" type="button">Show Zones</button>
-  <button id="zones" type="button">Load Default Zones And Spots</button>
-  <!-- <button id="spots" type="button">Load Default Number of Parking Spots</button> -->
-
-  <div id="response">
-
+  <!-- <div class="container"> -->
+  <div class="header">
+    <h1>Park-o-Matic</h1>
+    <!-- <p>My supercool header</p> -->
   </div>
+  <div>
+
+
+    <div id="mapid" style="height: 50em;"></div>
+
+    <br />
+    <button class="btn btn-primary" id="circles" type="button">Show Zones</button>
+    <button class="btn btn-primary" id="zones" type="button">Load Default Zones And Spots</button>
+    <!-- <button id="spots" type="button">Load Default Number of Parking Spots</button> -->
+    <button class="btn btn-info" id="as">Upload</button>
+    <button class="btn btn-info" id="delete" type="button">Delete KML from DB</button>
+    <div id="response">
+    </div>
+  </div>
+
+  <form action="upload.php" id="asa" method="post" enctype="multipart/form-data">
+    <input type="file" name="fileToUpload" id="fileToUpload">
+  </form>
+  <!-- </div> -->
 </body>
 
 <script type="text/javascript">
+  $("#as").click(function() {
+    $("#fileToUpload").click();
+  })
+
+  $('#fileToUpload').change(function() {
+    $('#asa').submit();
+  });
+
+  $("#delete").click(function(e) {
+    if (confirm('Are you sure you want to delete this?')) {
+      e.preventDefault();
+      $.ajax({
+        type: "GET",
+        url: "/del_table.php",
+
+        success: function(result) {
+          // $("#response").html(result.abc);
+          alert("deleted");
+        },
+        error: function(result) {
+          alert('error');
+        }
+      });
+    }
+  });
+
   var geojsonFeature;
   var geojson;
   var centroid;
   var res;
   var inner_radius = 1500;
+  var mid_radius = 3000;
   var outer_radius = 5500;
   var info;
   var circle1;
@@ -54,7 +119,7 @@
   });
   // var mymap = L.map('mapid').setView([40.627034, 22.954172], 12);
   var mymap = L.map('mapid');
-  mymap.fitWorld();
+  // mymap.fitWorld();
 
   // L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoibmlrb25pa29naWFubmEiLCJhIjoiY2p4bmU0OW5tMDFsbTNia2Z4OG5iaHlvcyJ9.QBLBmiu_qJ_9nMDnOQJBtA', {
   //   attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',

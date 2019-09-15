@@ -11,7 +11,7 @@ require_once 'db_config.php';
 //     die();
 // }
 
-//Clean DB From Previous Data
+// Clean DB From Previous Data
 $sql = 'DELETE FROM coord;';
 $sql.= 'ALTER TABLE coord AUTO_INCREMENT=1';
 $stmt = $dbh->prepare($sql);
