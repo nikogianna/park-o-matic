@@ -12,27 +12,13 @@
   <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
   <link rel="stylesheet" type="text/css" href="mystyle.css">
 
-  <title>Simulation</title>
-  <style type="text/css">
-    .header {
-      padding: 0.1em;
-      text-align: center;
-      background: #e6f7ff;
-      color: black;
-      font-size: 1.5em;
-    }
+  <title>Προσομοίωση Διαχειριστή</title>
 
-    body {
-      background-color: #e6f7ff;
-
-    }
-  </style>
 </head>
 
 <body>
   <div class="header">
-    <h1>Park-o-Matic</h1>
-    <!-- <p>My supercool header</p> -->
+    <h1>Προσομοίωση Διαχειριστή</h1>
   </div>
 
   <div id="mapid" style="height: 40em;"></div>
@@ -43,25 +29,22 @@
         <div class="row">
 
           <div class="form-group col-sm-6">
-            <label for="time">Start Time</label>
+            <label for="time">Ώρα Έναρξης</label>
             <input class="form-inline" type="range" id="time" name="time" min="0" max="23" value="0" autocomplete="off">
             <label for="time" id="demo2"></label>
           </div>
 
           <div class="form-group col-sm-6">
-            <label for="volume">Time Step</label>
+            <label for="volume">Βήμα Προσομοίωσης</label>
             <input class="form-inline" type="range" id="step" name="step" min="0" max="59" value="0" autocomplete="off">
             <label for="volume" id="demo"></label>
           </div>
         </div>
-
-        <!-- <br><br /> -->
         <div class="form-group row">
           <div class="col-sm-4">
           </div>
           <div class="col-sm-4">
-            <input class="btn btn-primary btn-block" id="reset" type="button" name="reset" value="Reset" style="display:none;" />
-            <!-- <input type="hidden" id="button_action" name="button_action" /> -->
+            <input class="btn btn-primary btn-block" id="reset" type="button" name="reset" value="Επαναφορά" style="display:none;" />
           </div>
           <div class="col-sm-4">
           </div>
@@ -70,13 +53,13 @@
         <div class="form-group row">
           <input type="hidden" id="button_action" name="button_action" />
           <div class="col-sm-4">
-            <input class="btn btn-primary btn-block" id="previous" type="submit" name="previous" value="Previous" style="display:none;" />
+            <input class="btn btn-primary btn-block" id="previous" type="submit" name="previous" value="Προηγούμενο" style="display:none;" />
           </div>
           <div class="col-sm-4">
-            <input class="btn btn-primary btn-block" id="action" type="submit" name="action" value="Start" />
+            <input class="btn btn-primary btn-block" id="action" type="submit" name="action" value="Έναρξη" />
           </div>
           <div class="col-sm-4">
-            <input class="btn btn-primary btn-block" id="next" type="submit" name="next" value="Next" style="display:none;" />
+            <input class="btn btn-primary btn-block" id="next" type="submit" name="next" value="Επόμενο" style="display:none;" />
           </div>
         </div>
       </form>
@@ -92,8 +75,6 @@
     </div>
 
   </div>
-
-
 
   <script>
     var slider = document.getElementById("step");
@@ -126,7 +107,7 @@
 
 </body>
 
-<script type="text/javascript" src='lala.js'></script>
+<script type="text/javascript" src='legend.js'></script>
 <script type="text/javascript" src='map.js'></script>
 
 
@@ -143,7 +124,6 @@
       url: "/sim_resp.php",
       data: $("#time-form").serialize(),
       success: function(result) {
-        // alert(result);
         $("#action").prop("disabled", true);
         $("#time").prop("disabled", true);
         $("#step").prop("disabled", true);
@@ -154,7 +134,7 @@
         var jsonObj = JSON.parse(result);
         $("#cur_time").css("display", "block");
 
-        $("#cur_time").text("Current time: " + jsonObj.time);
+        $("#cur_time").text("Προσομοίωση για: " + jsonObj.time);
 
         var taken_spots = [];
         var ids = [];

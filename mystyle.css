@@ -1,10 +1,15 @@
-/* #mapid {
-  height: 60em;
-}
+  .header {
+    padding: 0.1em;
+    text-align: center;
+    background: #e6f7ff;
+    color: black;
+    font-size: 1.5em;
+  }
 
-#admin_mapid {
-  height: 50em;
-} */
+  body {
+    background-color: #e6f7ff;
+
+  }
 
 #mapid2 {
   height: 500px;

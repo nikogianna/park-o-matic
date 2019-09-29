@@ -95,9 +95,7 @@ function onEachFeature3(feature, layer) {
 }
 
 function aler2(e) {
-  // mymap.on('click', function(e) {
-  // alert("Lat, Lon : " + e.latlng.lat + ", " + e.latlng.lng)
-  // });
+
   marker = e.target,
     properties = e.target.feature.properties;
   markerGroup.clearLayers();
@@ -114,20 +112,20 @@ function onClickMarker(e) {
 
 var template = '<form>\
 <div class="form-group">\
-<label for="input-spots">Num of spots:</label>\
+<label for="input-spots">Αριθμός χώρων στάθμευσης:</label>\
   <input class=""  id="input-spots" class="popup-input" type="number" min="0"/>\
   </div>\
   <div class="">\
-<label for="zones-select">Choose a zone:</label>\
+<label for="zones-select">Διαλέξτε μια ζώνη:</label>\
   <select class="form-control form-control-sm" id="zones-select" name="zones-select">\
-    <option value="default">Default</option>\
-    <option value="kentro">Center</option>\
-    <option value="home">Home</option>\
-    <option value="steady">Steady</option>\
+    <option value="default">Προεπιλεγμένη</option>\
+    <option value="kentro">Κέντρο</option>\
+    <option value="home">Κατοικίες</option>\
+    <option value="steady">Σταθερή</option>\
   </select>\
   </div>\
   <br><br>\
-  <button class="btn btn-dark btn-block" id="button-submit" type="button">Save Changes</button>\
+  <button class="btn btn-dark btn-block" id="button-submit" type="button">Αποθήκευση Αλλαγών</button>\
 </form>';
 
 function aler(e) {
@@ -155,7 +153,7 @@ function aler(e) {
 
   id = properties.id;
   inputSpots = L.DomUtil.get('input-spots');
-  // spots = inputSpots.value;
+
   L.DomEvent.addListener(inputSpots, 'change', function(e) {
     spots = e.target.value;
   });
@@ -192,42 +190,40 @@ function aler(e) {
           $("#next").css("display", "none");
           $("#previous").css("display", "none");
           $("#reset").css("display", "none");
-
-          $.ajax({
-            type: "POST",
-            url: "/resp.php",
-            dataType: 'json',
-            data: {
-              registration: "success",
-              name: "xyz",
-              email: "abc@gmail.com"
-            },
-            success: function(result) {
-
-              mymap.eachLayer(function(layer) {
-                mymap.removeLayer(layer);
-              });
-              mymap.addLayer(openmap);
-
-              geojsonFeature = jQuery.parseJSON(result.abc);
-              geojson = L.geoJson(geojsonFeature, {
-                style: myStyle,
-                onEachFeature: onEachFeature2
-              }).addTo(mymap);
-
-            },
-            error: function(result) {
-              alert('error');
-            }
-          });
         }
 
       },
       error: function(result) {
-        alert('error');
+        alert('Υπήρξε κάποιο σφάλμα');
       }
     });
+    $.ajax({
+      type: "POST",
+      url: "/resp.php",
+      dataType: 'json',
+      data: {
+        registration: "success",
+        name: "xyz",
+        email: "abc@gmail.com"
+      },
+      success: function(result) {
 
+        mymap.eachLayer(function(layer) {
+          mymap.removeLayer(layer);
+        });
+        mymap.addLayer(openmap);
+
+        geojsonFeature = jQuery.parseJSON(result.abc);
+        geojson = L.geoJson(geojsonFeature, {
+          style: myStyle,
+          onEachFeature: onEachFeature2
+        }).addTo(mymap);
+
+      },
+      error: function(result) {
+        alert('Υπήρξε κάποιο σφάλμα');
+      }
+    });
   });
 }
 
@@ -266,20 +262,18 @@ $("#circles").click(function(e) {
         "opacity": 0.55
       }).addTo(mymap);
 
-      $("#circles").html('Hide Zones');
-      // var marker = L.marker([40.64316461309677, 22.93441007414772]).addTo(mymap);
+      $("#circles").html('Απόκρυψη Ζωνών');
 
     } else {
       mymap.removeLayer(circle1);
       mymap.removeLayer(circle2);
       mymap.removeLayer(circle3);
       mymap.removeLayer(centroid1);
-      $("#circles").html('Show Zones');
+      $("#circles").html('Δείξε Ζώνες');
 
     }
   }
 });
-// var marker = L.marker([40.58798254168363, 22.97053825267842]).addTo(mymap);
 
 $("#zones").click(function(e) {
   e.preventDefault();
@@ -317,7 +311,6 @@ $("#zones").click(function(e) {
   var jsonZones = JSON.stringify(zones);
   var jsonSpots = JSON.stringify(spots);
   var jsonIDs = JSON.stringify(ids);
-  // alert(jsonString);
   $.ajax({
     type: "POST",
     url: "/resp2.php",
@@ -329,9 +322,7 @@ $("#zones").click(function(e) {
     },
     success: function(result) {
 
-      // alert("Zones are now loaded on the DB");
       alert(result);
-
     },
     error: function(result) {
       alert('error');
@@ -355,14 +346,9 @@ $("#zones").click(function(e) {
         onEachFeature: onEachFeature2
       }).addTo(mymap);
 
-      // mymap.fitBounds(geojson.getBounds());
-      //
-      // centroid = turf.centroid(geojsonFeature);
-      // res = String(centroid.geometry.coordinates).split(",");
-
     },
     error: function(result) {
-      alert('error');
+      alert('Υπήρξε κάποιο σφάλμα');
     }
   });
 });

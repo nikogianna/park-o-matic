@@ -2,8 +2,6 @@
 
 require_once 'db_config.php';
 
-// $_SESSION = array();
-// session_destroy();
 session_start();
 
 if (!isset($_SESSION["time"])) {
@@ -24,12 +22,6 @@ $temp_step = $_POST['step'];
 
 $choi = $_POST['button_action'];
 
-// echo $_SESSION["step"];
-// echo '</br>';
-//
-// echo $step;
-
-
 if ($choi == 'action') {
 
     $time = $temp_time * 60;
@@ -46,34 +38,19 @@ if ($choi == 'action') {
     }
 }
 
-// echo '</br>';
-//
-// echo $time;
 $_SESSION["time"] = $time;
 $hour = floor($time / 60);
-// echo '</br>';
-//
-// echo $hour;
 
 function convertToHoursMins($time, $format = '%1d:%02d')
 {
-    // if ($time < 1) {
-    //     return;
-    // }
     $hours = floor($time / 60);
+    if ($hours >= 24) $hours -= 24;
     $minutes = ($time % 60);
     return sprintf($format, $hours, $minutes);
-
 }
-// foreach ($dbh->query("SELECT id, AsText(centroid), population, zone, spots  from coord WHERE
-// (
-//     zone IS NOT NULL
-//   AND
-//     spots IS NOT NULL
-// );
+
 foreach ($dbh->query("SELECT id, AsText(centroid), population, zone, spots  from coord
  ") as $row) {
-    // print_r($row);
 
     $id[] = $row[0];
     $centroid[] = $row[1];
@@ -92,7 +69,6 @@ foreach ($id as $polyg) {
     $taken_spots = "null";
 
     if (($zone[$i] !== null) && ($spots[$i] !== null)) {
-        // echo $zone[$i];
         $stmt->execute([$hour]);
         $row12 = $stmt->fetch();
 
@@ -119,9 +95,6 @@ foreach ($out as $polygon) {
 }
 
 $data = rtrim($data, ', ');
-
 $data = $data . '] }';
 
 echo $data;
-
-// echo $choi;

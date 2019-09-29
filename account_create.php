@@ -1,5 +1,4 @@
 <?php
-// Include config file
 
 session_start();
 
@@ -20,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Validate username
     if (empty(trim($_POST["username"]))) {
-        $username_err = "Please enter a username.";
+        $username_err = "Δώστε όνομα χρήστη.";
     } else {
         // Prepare a select statement
         $sql = "SELECT id FROM users WHERE username = ?";
@@ -34,40 +33,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Attempt to execute the prepared statement
             if ($stmt->execute([$param_username])) {
-                /* store result */
-                // mysqli_stmt_store_result($stmt);
-
-                // if(mysqli_stmt_num_rows($stmt) == 1){
                 if ($stmt->rowCount() >= 1) {
-                    $username_err = "This username is already taken.";
+                    $username_err = "Αυτό το όνομα χρήστη χρησιμοποιείται ήδη από άλλον χρήστη.";
                 } else {
                     $username = trim($_POST["username"]);
                 }
             } else {
-                echo "Oops! Something went wrong. Please try again later.";
+                echo "Κάτι πήγε στραβά. Ξαναδοκιμάστε αργότερα";
             }
         }
-
-        // Close statement
-        // mysqli_stmt_close($stmt);
     }
 
     // Validate password
     if (empty(trim($_POST["password"]))) {
-        $password_err = "Please enter a password.";
+        $password_err = "Δώστε τον κωδικό.";
     } elseif (strlen(trim($_POST["password"])) < 6) {
-        $password_err = "Password must have atleast 6 characters.";
+        $password_err = "Ο κωδικός πρέπει να έχει μήκος τουλάχιστον 6 χαρακτήρες.";
     } else {
         $password = trim($_POST["password"]);
     }
 
     // Validate confirm password
     if (empty(trim($_POST["confirm_password"]))) {
-        $confirm_password_err = "Please confirm password.";
+        $confirm_password_err = "Επιβεβαιώστε τον κωδικό.";
     } else {
         $confirm_password = trim($_POST["confirm_password"]);
         if (empty($password_err) && ($password != $confirm_password)) {
-            $confirm_password_err = "Password did not match.";
+            $confirm_password_err = "Οι δύο κωδικοί δεν είναι ίδιοι.";
         }
     }
 
@@ -85,7 +77,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $param_password = password_hash($password, PASSWORD_DEFAULT); // Creates a password hash
 
             // Attempt to execute the prepared statement
-            // if (mysqli_stmt_execute($stmt)) {
            if ($stmt->execute([$param_username, $param_password])) {
                 // Redirect to login page
                 session_start();
@@ -96,19 +87,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 session_destroy();
 
                 // // Redirect to login page
-                // header("location: login.php");
                 header("location: login.php");
             } else {
-                echo "Something went wrong. Please try again later.";
+                echo "Κάτι πήγε στραβά. Ξαναδοκιμάστε αργότερα.";
             }
         }
-
-        // Close statement
-        // mysqli_stmt_close($stmt);
     }
-
-    // Close connection
-    // mysqli_close($link);
     $dbh = null;
 }
 ?>
@@ -117,7 +101,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Create Account</title>
+    <title>Δημιουργία Λογαριασμού</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
     <style type="text/css">
         body{ font: 14px sans-serif; }
@@ -126,21 +110,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <div class="wrapper">
-        <h2>Create Account</h2>
-        <p>Please fill this form to create an account.</p>
+        <h2>Δημιουργία Λογαριασμού</h2>
+        <p>Συμπληρώστε την παρακάτω φόρμα για να δημιουργήσετε έναν νέο λογαριασμό διαχειριστή.</p>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="form-group <?php echo (!empty($username_err)) ? 'has-error' : ''; ?>">
-                <label>Username</label>
+                <label>Όνομα Χρήστη</label>
                 <input type="text" name="username" class="form-control" value="<?php echo $username; ?>">
                 <span class="help-block"><?php echo $username_err; ?></span>
             </div>
             <div class="form-group <?php echo (!empty($password_err)) ? 'has-error' : ''; ?>">
-                <label>Password</label>
+                <label>Κωδικός</label>
                 <input type="password" name="password" class="form-control" value="<?php echo $password; ?>">
                 <span class="help-block"><?php echo $password_err; ?></span>
             </div>
             <div class="form-group <?php echo (!empty($confirm_password_err)) ? 'has-error' : ''; ?>">
-                <label>Confirm Password</label>
+                <label>Επιβεβαίωση κωδικού</label>
                 <input type="password" name="confirm_password" class="form-control" value="<?php echo $confirm_password; ?>">
                 <span class="help-block"><?php echo $confirm_password_err; ?></span>
             </div>
@@ -148,7 +132,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="submit" class="btn btn-primary" value="Submit">
                 <input type="reset" class="btn btn-default" value="Reset">
             </div>
-            <!-- <p>Already have an account? <a href="login.php">Login here</a>.</p> -->
         </form>
     </div>
 </body>

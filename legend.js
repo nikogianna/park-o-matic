@@ -3,7 +3,8 @@
   var centroid;
   var res;
   var inner_radius = 1500;
-  var outer_radius = 3000;
+  var mid_radius = 3000;
+  var outer_radius = 5500;
   var info;
   var circle1;
   var circle2;
@@ -14,10 +15,7 @@
     minZoom: 0
   });
   var mymap = L.map('mapid');
-  // mymap.fitWorld();
   mymap.addLayer(openmap);
-
-
 
   $(document).ready(function() {
     $.ajax({
@@ -53,15 +51,15 @@
     });
 
     info.onAdd = function(mymap) {
-      this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+      this._div = L.DomUtil.create('div', 'info');
       this.update();
       return this._div;
     };
 
     info.update = function(polyg) {
-      this._div.innerHTML = '<h4>Population And ID</h4>' + (polyg ?
-        '<b>ID: ' + polyg.id + '</b><br />' + polyg.population + ' people' :
-        'Hover over a polygon');
+      this._div.innerHTML = '<h4>Πληθυσμός και ID</h4>' + (polyg ?
+        '<b>ID: ' + polyg.id + '</b><br />' + polyg.population + ' κάτοικοι' :
+        'Τοποθετήστε τον δείκτη πάνω σε κάποιο σκιασμένο σημείο');
     };
 
     info.addTo(mymap);

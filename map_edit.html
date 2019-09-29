@@ -6,56 +6,33 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="" />
-  <!-- Make sure you put this AFTER Leaflet's CSS -->
   <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
-  <!-- <script type="text/javascript" src="https://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script> -->
   <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
-
   <link rel="stylesheet" type="text/css" href="mystyle.css">
 
-  <title>Edit Map</title>
+  <title>Διαχείριση Χάρτη</title>
 
   <style type="text/css">
-    input {
+    #fileToUpload {
       position: absolute;
       top: -100px;
-    }
-
-
-    .header {
-      padding: 0.1em;
-      text-align: center;
-      background: #e6f7ff;
-      color: black;
-      font-size: 1.5em;
-    }
-
-    body {
-      background-color: #e6f7ff;
-
     }
   </style>
 </head>
 
 <body>
-  <!-- <div class="container"> -->
   <div class="header">
-    <h1>Park-o-Matic</h1>
-    <!-- <p>My supercool header</p> -->
+    <h1>Διαχείριση Χάρτη</h1>
   </div>
   <div>
 
-
     <div id="mapid" style="height: 50em;"></div>
-
     <br />
-    <button class="btn btn-primary" id="circles" type="button">Show Zones</button>
-    <button class="btn btn-primary" id="zones" type="button">Load Default Zones And Spots</button>
-    <!-- <button id="spots" type="button">Load Default Number of Parking Spots</button> -->
-    <button class="btn btn-info" id="as">Upload</button>
-    <button class="btn btn-info" id="delete" type="button">Delete KML from DB</button>
+    <button class="btn btn-primary" id="circles" type="button">Εμφάνιση Ζωνών</button>
+    <button class="btn btn-primary" id="zones" type="button">Φόρτωση Προεπιλεγμένων ζωνών και θέσεων</button>
+    <button class="btn btn-info" id="as">Φόρτωση αρχείου KML</button>
+    <button class="btn btn-info" id="delete" type="button">Διαγραφή δεδομένων διαμόρφωσης</button>
     <div id="response">
     </div>
   </div>
@@ -63,7 +40,6 @@
   <form action="upload.php" id="asa" method="post" enctype="multipart/form-data">
     <input type="file" name="fileToUpload" id="fileToUpload">
   </form>
-  <!-- </div> -->
 </body>
 
 <script type="text/javascript">
@@ -76,116 +52,24 @@
   });
 
   $("#delete").click(function(e) {
-    if (confirm('Are you sure you want to delete this?')) {
+    if (confirm('Είστε βέβαιοι ότι θέλετε να διαγράψετε όλα τα δεδομένα διαμόρφωσης?')) {
       e.preventDefault();
       $.ajax({
         type: "GET",
         url: "/del_table.php",
 
         success: function(result) {
-          // $("#response").html(result.abc);
-          alert("deleted");
+          alert("Τα δεδομένα διαμόρφωσης διαγράφηκαν");
         },
         error: function(result) {
-          alert('error');
+          alert('Υπήρξε κάποιο σφάλμα');
         }
       });
     }
   });
-
-  var geojsonFeature;
-  var geojson;
-  var centroid;
-  var res;
-  var inner_radius = 1500;
-  var mid_radius = 3000;
-  var outer_radius = 5500;
-  var info;
-  var circle1;
-  var circle2;
-  var centroid1;
-
-
-  // var Stamen_Toner = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
-  //   attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  //   subdomains: 'abcd',
-  //   minZoom: 0,
-  //   maxZoom: 20,
-  //   ext: 'png'
-  // });
-  var openmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: 'Map tiles by <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    minZoom: 0
-  });
-  // var mymap = L.map('mapid').setView([40.627034, 22.954172], 12);
-  var mymap = L.map('mapid');
-  // mymap.fitWorld();
-
-  // L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoibmlrb25pa29naWFubmEiLCJhIjoiY2p4bmU0OW5tMDFsbTNia2Z4OG5iaHlvcyJ9.QBLBmiu_qJ_9nMDnOQJBtA', {
-  //   attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-  //   maxZoom: 18,
-  //   id: 'mapbox.satellite',
-  //   accessToken: 'your.mapbox.access.token'
-  // }).addTo(mymap);
-  // var layer = new L.StamenTileLayer("toner");
-  mymap.addLayer(openmap);
-  // mymap.addLayer(Stamen_Toner);
-  // L.geoJSON(geojsonFeature).addTo(mymap);
 </script>
 
-<script type="text/javascript">
-  $(document).ready(function() {
-    $.ajax({
-      type: "POST",
-      url: "/resp.php",
-      dataType: 'json',
-      data: {
-        registration: "success",
-        name: "xyz",
-        email: "abc@gmail.com"
-      },
-      success: function(result) {
-
-        geojsonFeature = jQuery.parseJSON(result.abc);
-        geojson = L.geoJson(geojsonFeature, {
-          style: myStyle,
-          onEachFeature: onEachFeature2
-        }).addTo(mymap);
-
-        mymap.fitBounds(geojson.getBounds());
-
-        centroid = turf.centroid(geojsonFeature);
-        res = String(centroid.geometry.coordinates).split(",");
-
-      },
-      error: function(result) {
-        alert('error');
-      }
-    });
-
-    info = L.control({
-      position: 'bottomleft'
-    });
-
-    info.onAdd = function(mymap) {
-      this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
-      this.update();
-      return this._div;
-    };
-
-    // method that we will use to update the control based on feature properties passed
-    info.update = function(polyg) {
-      this._div.innerHTML = '<h4>Population And ID</h4>' + (polyg ?
-        '<b>ID: ' + polyg.id + '</b><br />' + polyg.population + ' people' :
-        'Hover over a polygon');
-    };
-
-    info.addTo(mymap);
-
-
-  });
-</script>
-
+<script type="text/javascript" src='legend.js'></script>
 <script type="text/javascript" src='map.js'></script>
 
 
